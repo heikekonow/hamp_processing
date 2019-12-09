@@ -1,0 +1,47 @@
+function table = lookup_coordinates
+
+table = {
+    'dBZ',  'time lat lon height';
+    'LDR',  'time lat lon height';
+    'RMS',  'time lat lon height';
+    'SNR',  'time lat lon height';
+    'VEL',  'time lat lon height';
+    'Z',  'time lat lon height';
+    'altitude',  'time lat lon';
+    'p',         'time lat lon';
+    'rh',        'time lat lon';
+    'ta',        'time lat lon';
+    'u',         'time lat lon';
+    'v',         'time lat lon';
+    'w',         'time lat lon';
+    'heading',   'time lat lon';
+    'mr',   'time lat lon';
+    'pitch',   'time lat lon';
+    'roll',   'time lat lon';
+    'gs',   'time lat lon';
+    'theta',   'time lat lon';
+    'vel',   'time lat lon';
+    'p_mat',         'time lat lon height';
+    'rh_mat',        'time lat lon height';
+    'ta_mat',        'time lat lon height';
+    'u_mat',         'time lat lon height';
+    'v_mat',         'time lat lon height';
+    'w_mat',         'time lat lon height';
+    'heading_mat',   'time lat lon height';
+    'altitude_mat',   'time lat lon height';
+    'mr_mat',   'time lat lon height';
+    'pitch_mat',   'time lat lon height';
+    'roll_mat',   'time lat lon height';
+    'gs_mat',   'time lat lon height';
+    'theta_mat',   'time lat lon height';
+    'vel_mat',   'time lat lon height';
+    'interpolate_flag',  'time lat lon';
+    'tb',  'time lat lon frequency';
+    'time', '';
+    'lat', '';
+    'lon', '';
+    'lat_mat', '';
+    'lon_mat', '';
+    'height', '';
+    'frequency', '';
+    'date', ''};
