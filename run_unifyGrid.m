@@ -3,11 +3,11 @@ function run_unifyGrid
 tic 
 %% Switches
 % Unify data onto common grid
-unify = 0;
+unify = 1;
 % Save data to netcdf
 savedata = 1;
 % Redo unified bahamas data, otherwise only load
-redoBahamas = 0;
+redoBahamas = 1;
 
 %% Set version information
 version = 0;
@@ -34,6 +34,12 @@ else
     pathtofolder = [getPathPrefix 'EUREC4A_campaignData/'];
 end
 
+%% Check if output folders exist, otherwise create
+
+checkandcreate(pathtofolder, 'all_mat')
+checkandcreate(pathtofolder, 'all_nc')
+checkandcreate(pathtofolder, 'radar_mira')
+
 %% Specify variables to consider
 
 % Bahamas
@@ -51,8 +57,6 @@ radarVars = {'dBZg','Zg','LDRg','RMSg','VELg','SNRg'};
 sondeVars = {'pres','tdry','dp','rh','u_wind','v_wind','wspd','wdir','dz',...
              'mr','vt','theta','theta_e','theta_v','lat','lon'};
 
-% Lidar
-lidarVars = {'Backsc','MR'};
 
 %% Data processing
 
@@ -269,5 +273,11 @@ function addGeoRef(outfile)
         if ~strcmp(table{indVar, 2}, '')
             ncwriteatt(outfile, varnames{i}, 'coordinates', table{indVar, 2});
         end
+    end
+end
+
+function checkandcreate(pathtofolder, foldername)
+    if ~exist([pathtofolder foldername], 'dir')
+       mkdir([pathtofolder foldername])
     end
 end
