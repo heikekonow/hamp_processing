@@ -1,5 +1,9 @@
 function pathPrefix = getPathPrefix
 
-% Set path to data output folder (end path with slash '/')
+configstruct = config;
 
-pathPrefix = '/Users/heike/Documents/eurec4a/data_processing/';
+% Set path to data output folder (end path with slash '/')
+if ~strcmp(configstruct.datapath(end),'/')
+    configstruct.datapath = [configstruct.datapath '/'];
+end
+pathPrefix = configstruct.datapath;
