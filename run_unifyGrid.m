@@ -276,8 +276,4 @@ function addGeoRef(outfile)
     end
 end
 
-function checkandcreate(pathtofolder, foldername)
-    if ~exist([pathtofolder foldername], 'dir')
-       mkdir([pathtofolder foldername])
-    end
-end
+
