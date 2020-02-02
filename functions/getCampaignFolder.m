@@ -8,7 +8,7 @@ if iscell(flightdates)
         foldername = 'NARVAL-I_campaignData/';
     elseif str2double(flightdates{1})>20160000 && str2double(flightdates{end})<20190000
         foldername = 'NANA_campaignData/';
-    elseif str2double(flightdates{1})>20190000 && str2double(flightdates{end})<20200000
+    elseif str2double(flightdates{1})>20200000 && str2double(flightdates{end})<20210000
         foldername = 'EUREC4A_campaignData/';
     else
         error('Flight dates span more than one campaign year. Please specify.')
