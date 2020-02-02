@@ -1,4 +1,4 @@
-function run_unifyGrid
+function run_unifyGrid(flightdates_use)
 
 tic 
 %% Switches
@@ -13,17 +13,19 @@ redoBahamas = 1;
 version = 0;
 subversion = 4;
 
-%% Specify time frame for data conversion
-% Start date
-t1 = '20190516';  
-% End date
-t2 = '20190517';
-
-% Get flight dates to use in this program
-flightdates_use = specifyDatesToUse(t1,t2);
+% %% Specify time frame for data conversion
+% % Start date
+% t1 = '20190516';  
+% % End date
+% t2 = '20190517';
+% 
+% % Get flight dates to use in this program
+% flightdates_use = specifyDatesToUse(t1,t2);
 
 % Load information on flight dates and campaigns
-flight_dates;
+[NARVALdates, NARVALdatenum] = flightDates;
+
+t1 = flightdates_use{1};
 
 % Set path to root folder
 if str2num(t1)<20160101
@@ -34,11 +36,11 @@ else
     pathtofolder = [getPathPrefix 'EUREC4A_campaignData/'];
 end
 
-%% Check if output folders exist, otherwise create
-
-checkandcreate(pathtofolder, 'all_mat')
-checkandcreate(pathtofolder, 'all_nc')
-checkandcreate(pathtofolder, 'radar_mira')
+% %% Check if output folders exist, otherwise create
+% 
+% checkandcreate(pathtofolder, 'all_mat')
+% checkandcreate(pathtofolder, 'all_nc')
+% checkandcreate(pathtofolder, 'radar_mira')
 
 %% Specify variables to consider
 
