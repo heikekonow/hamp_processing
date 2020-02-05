@@ -26,7 +26,7 @@ table = {
     'ta_mat',        'time lat lon height';
     'u_mat',         'time lat lon height';
     'v_mat',         'time lat lon height';
-    'w_mat',         'time lat lon height';
+    'w_mat',         'time lat lon height';   
     'heading_mat',   'time lat lon height';
     'altitude_mat',   'time lat lon height';
     'mr_mat',   'time lat lon height';
@@ -44,4 +44,7 @@ table = {
     'lon_mat', '';
     'height', '';
     'frequency', '';
-    'date', ''};
+    'date', '';
+    'sonde_number', '';
+    'launch_time', ''
+    };

@@ -109,8 +109,8 @@ contactAttr = {{'contact','heike.konow@uni-hamburg.de'}};
 
 %% Export to netcdf
 
-% instr = {'bahamas','radar','radiometer','dropsondes'};
-instr = {'bahamas','radar','radiometer'};
+instr = {'bahamas','radar','radiometer','dropsondes'};
+% instr = {'bahamas','radar','radiometer'};
 % instr = {'radar'};
 % instr = {'bahamas'};
 % instr = {'lidar'};
@@ -268,11 +268,13 @@ function addGeoRef(outfile)
     for i=1:length(varnames)
         indVar = strcmp(varnames{i}, table(:,1));
         
-        if sum(indVar)==0
-            error(['Variable ' varnames{i} ' not found'])
-        end
+%         if sum(indVar)==0
+%             error(['Variable ' varnames{i} ' not found'])
+%         end
         
-        if ~strcmp(table{indVar, 2}, '')
+        disp(varnames{i})
+        
+        if sum(indVar)~=0 && ~strcmp(table{indVar, 2}, '')
             ncwriteatt(outfile, varnames{i}, 'coordinates', table{indVar, 2});
         end
     end
