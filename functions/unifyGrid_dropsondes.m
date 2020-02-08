@@ -49,10 +49,7 @@ for j=1:length(filename)
     sondeHeightCpy = sondeHeight;
     sondeHeightCpy(nanIndex_tmp) = [];
     
-    if j==6
-        disp('')
-    end
-    
+  
     sondeHeight = removeHeightIncrease(sondeHeight);
     
     % Find indices of nan entries
@@ -90,11 +87,12 @@ if ~isempty(filename)
     % Loop dropsonde variables
     for i=1:length(sondeVars)
         disp(sondeVars{i})
+        nanSondeNumber=zeros(1,length(filename));
         % Loop dropsonde files
         for j=1:length(filename)
             % Set path to file
             filepath = [pathtofolder 'dropsonde/' filename{j}];
-
+  
             % Read data
             data{j} = ncread(filepath,sondeVars{i});
 
@@ -120,8 +118,11 @@ if ~isempty(filename)
 %                     disp(num2str(j))
 %                 end
                 if sum(isnan(data{j})) <= length(data{j})-2
-                    dataInt{j} = interpolateData(sondeHeightForInterp{j},data{j},10);
-                    data{j} = dataInt{j};
+                     [~,index]=unique(sondeHeightForInterp{j});
+                     index=setdiff(1:length(data{j}),index);
+                     data{j}(index)=NaN;
+                     dataInt{j} = interpolateData(sondeHeightForInterp{j},data{j},10);
+                     data{j} = dataInt{j};
                 end
             end
 
@@ -171,21 +172,23 @@ if ~isempty(filename)
         if size(uniDataDropsonde_sondes,2)<length(filename)
             nanSondeNumber = nanSondeNumber(nanSondeNumber~=0);
             tmp = nan(length(uniHeight),length(filename));
+            index=setdiff(1:length(filename),nanSondeNumber);
+            tmp(:,index)=uniDataDropsonde_sondes(:,:);
             
-            l = 1;
-            
-            tmp(:,1:nanSondeNumber(l)-1) = ...
-                uniDataDropsonde_sondes(:,1:nanSondeNumber(l)-1);
-            
-            if length(nanSondeNumber)>1
-                for l=nanSondeNumber(2):length(nanSondeNumber)
-                    tmp(:,nanSondeNumber(l-1)+1:nanSondeNumber(l)-1) = ...
-                uniDataDropsonde_sondes(:,nanSondeNumber(l-1):nanSondeNumber(l)-1);
-                end
-            end
-            
-            tmp(:,nanSondeNumber(l)+1:end) = ...
-                uniDataDropsonde_sondes(:,nanSondeNumber(l):end);
+%             l = 1;
+%             
+%             tmp(:,1:nanSondeNumber(l)-1) = ...
+%                 uniDataDropsonde_sondes(:,1:nanSondeNumber(l)-1);
+%             
+%             if length(nanSondeNumber)>1
+%                 for l=nanSondeNumber(2):length(nanSondeNumber)                  
+%                     tmp(:,nanSondeNumber(l-1)+1:nanSondeNumber(l)-1) = ...
+%                 uniDataDropsonde_sondes(:,nanSondeNumber(l-1):nanSondeNumber(l)-1);
+%                 end
+%             end
+%             
+%             tmp(:,nanSondeNumber(l)+1:end) = ...
+%                 uniDataDropsonde_sondes(:,nanSondeNumber(l):end);
             
             clear uniDataDropsonde_sondes
             uniDataDropsonde_sondes = tmp;
