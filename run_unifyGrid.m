@@ -1,29 +1,31 @@
-function run_unifyGrid_v0_4
+function run_unifyGrid(flightdates_use)
 
 tic 
 %% Switches
 % Unify data onto common grid
-unify = 0;
+unify = 1;
 % Save data to netcdf
 savedata = 1;
 % Redo unified bahamas data, otherwise only load
-redoBahamas = 0;
+redoBahamas = 1;
 
 %% Set version information
 version = 0;
 subversion = 4;
 
-%% Specify time frame for data conversion
-% Start date
-t1 = '20190516';  
-% End date
-t2 = '20190517';
-
-% Get flight dates to use in this program
-flightdates_use = specifyDatesToUse(t1,t2);
+% %% Specify time frame for data conversion
+% % Start date
+% t1 = '20190516';  
+% % End date
+% t2 = '20190517';
+% 
+% % Get flight dates to use in this program
+% flightdates_use = specifyDatesToUse(t1,t2);
 
 % Load information on flight dates and campaigns
-flight_dates;
+[NARVALdates, NARVALdatenum] = flightDates;
+
+t1 = flightdates_use{1};
 
 % Set path to root folder
 if str2num(t1)<20160101
@@ -33,6 +35,12 @@ elseif str2num(t1)<20190101
 else
     pathtofolder = [getPathPrefix 'EUREC4A_campaignData/'];
 end
+
+% %% Check if output folders exist, otherwise create
+% 
+% checkandcreate(pathtofolder, 'all_mat')
+% checkandcreate(pathtofolder, 'all_nc')
+% checkandcreate(pathtofolder, 'radar_mira')
 
 %% Specify variables to consider
 
@@ -51,8 +59,6 @@ radarVars = {'dBZg','Zg','LDRg','RMSg','VELg','SNRg'};
 sondeVars = {'pres','tdry','dp','rh','u_wind','v_wind','wspd','wdir','dz',...
              'mr','vt','theta','theta_e','theta_v','lat','lon'};
 
-% Lidar
-lidarVars = {'Backsc','MR'};
 
 %% Data processing
 
@@ -103,8 +109,8 @@ contactAttr = {{'contact','heike.konow@uni-hamburg.de'}};
 
 %% Export to netcdf
 
-% instr = {'bahamas','radar','radiometer','dropsondes'};
-instr = {'bahamas','radar','radiometer'};
+instr = {'bahamas','radar','radiometer','dropsondes'};
+% instr = {'bahamas','radar','radiometer'};
 % instr = {'radar'};
 % instr = {'bahamas'};
 % instr = {'lidar'};
@@ -262,12 +268,16 @@ function addGeoRef(outfile)
     for i=1:length(varnames)
         indVar = strcmp(varnames{i}, table(:,1));
         
-        if sum(indVar)==0
-            error(['Variable ' varnames{i} ' not found'])
-        end
+%         if sum(indVar)==0
+%             error(['Variable ' varnames{i} ' not found'])
+%         end
         
-        if ~strcmp(table{indVar, 2}, '')
+        disp(varnames{i})
+        
+        if sum(indVar)~=0 && ~strcmp(table{indVar, 2}, '')
             ncwriteatt(outfile, varnames{i}, 'coordinates', table{indVar, 2});
         end
     end
 end
+
+

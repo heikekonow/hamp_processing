@@ -27,7 +27,16 @@ for j=1:length(filename)
     
     % Read time and height
     sondeTime = ncread(filepath,'time');
-    sondeTime = unixtime2sdn(sondeTime);
+    % Check if time variable only contains seconds since ...
+    if sondeTime(1) < sdn2unixtime(datenum(2000,1,1))
+        % Get launch time from file name
+        launchTimeString = filename{j}(2:16);
+        launchTime = datenum(launchTimeString, 'yyyymmdd_HHMMSS');
+        
+        sondeTime = launchTime + 1/24/60/60 .* sondeTime;
+    else
+        sondeTime = unixtime2sdn(sondeTime);
+    end
     sondeHeight = ncread(filepath,'gpsalt');
     
     % Flip data so that time is increasing

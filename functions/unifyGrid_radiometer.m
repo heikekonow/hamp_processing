@@ -33,10 +33,10 @@ for i=1:length(radiometerVars)
         date_backup = flightdate;
         flightdate = flightdate(3:end);
         filename = listFiles([pathtofolder 'radiometer/' radiometerVars{i} '/*' flightdate '*']);
-        % 20131220 is the only day with a flight ending after 00z,
-        % therefore, look for data from following day
-        if strcmp(date_backup,'20131220')
-            filename_2 = listFiles([pathtofolder 'radiometer/' radiometerVars{i} '/*' num2str(str2num(flightdate)+1) '*']);
+        
+        % Check if flight ended after 00z
+        if ~strcmp(datestr(uniTime(end), 'yymmdd'), flightdate)
+            filename_2 = listFiles([pathtofolder 'radiometer/' radiometerVars{i} '/*' datestr(uniTime(end), 'yymmdd') '*']);
             filename = [filename;filename_2];
         end
         flightdate = date_backup;
@@ -165,6 +165,14 @@ for i=1:length(radiometerVars)
 %                             timeInterp,'linear');
         end
         
+        % Rename variable
+        eval(['uniRadiometer' radiometerVars{i} ' = uniDataRadiometer;'])
+        eval(['uniRadiometer' radiometerVars{i} '_freq = freq;'])
+    else
+        uniDataRadiometer = ones(size(uniTime)) .* -888;
+        freq = -888;
+        
+        interpolate_flag{i} = ones(size(uniTime)) .* -888;
         % Rename variable
         eval(['uniRadiometer' radiometerVars{i} ' = uniDataRadiometer;'])
         eval(['uniRadiometer' radiometerVars{i} '_freq = freq;'])
