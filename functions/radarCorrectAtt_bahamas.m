@@ -148,7 +148,6 @@ tBahamas = unixtime2sdn(tBahamas);
 heightNameUse = replaceBahamasVarName('IRS_ALT',varsInBahamasFile);
 hGPS = ncread(BahamasFile,heightNameUse{1});
 % flight data
-% rollAngle = ncread(BahamasFile,'roll');
 varNameUse = replaceBahamasVarName('IRS_PHI',varsInBahamasFile);
 rollAngle = ncread(BahamasFile,varNameUse{1});
 % pitchAngle = ncread(BahamasFile,'pitch');
@@ -158,6 +157,9 @@ pitchAngle = ncread(BahamasFile,varNameUse{1});
 % Replace variable names
 varNameUse = cellfun(@(x,y) replaceBahamasVarName(x,varsInBahamasFile),varBahamas,'UniformOutput',false);
 varBahamas = [varNameUse{:}];
+
+% Get maximum altitude 
+alt_max = max(hGPS);
 
 %% Adjust time series
 disp('Adjust time series')
@@ -217,8 +219,7 @@ turnInd = (abs(rollAngle)>5);
 % % define vertical grid for variables
 % % zGrid = 0:30:14000;
 
-% Get maximum altitude 
-alt_max = max(hGPS);
+
 % Round up to next 100 m
 alt_max = ceil(alt_max/100)*100;
 % Define vertical grid for variables
