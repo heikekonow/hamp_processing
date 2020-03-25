@@ -1,4 +1,4 @@
-function run_unifyGrid(flightdates_use)
+function run_unifyGrid(flightdates_use, comment, contact)
 
 tic 
 %% Switches
@@ -105,7 +105,9 @@ for k=1:length(versionInfo)
 end
 
 % Write attribute with contact information
-contactAttr = {{'contact','heike.konow@uni-hamburg.de'}};
+contactAttr = {{'contact', contact}};
+
+commentAttr = {{'comment', comment}};
 
 %% Export to netcdf
 
@@ -192,7 +194,7 @@ if savedata
                     flightAttr = {{'mission',flightMission};{'flight_number',flightNumber}};
 
                     % Concatenate global attribute infos into one variable
-                    globAtt = [vAttr;contactAttr;flightAttr];
+                    globAtt = [vAttr; contactAttr; flightAttr; commentAttr];
 
                     varInfo = replaceVarName(varInfo,instr{j});
                     ncDims = replaceVarName(ncDims,instr{j});
