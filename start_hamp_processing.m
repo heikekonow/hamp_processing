@@ -19,10 +19,14 @@ flightdates_use = specifyDatesToUse(t1,t2);
 
 %%
 
+% Check structure of folders for data files
+checkfolderstructure(getPathPrefix, flightdates_use)
 
-% checkfolderstructure(getPathPrefix, flightdates_use)
+% Correct radar data for aircraft attitude
+runRadarAttitude(flightdates_use)
 
-% runRadarAttitude(flightdates_use)
-
+% Unify data from bahamas, dropsondes, radar, radiometer onto common grid
 run_unifyGrid(flightdates_use, comment, contact)
 
+% Plot quicklooks for latest version
+plotHAMPQuicklook_sepFiles(flightdates_use)
