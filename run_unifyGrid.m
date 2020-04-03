@@ -285,7 +285,8 @@ end
 function addFlightSegment(pathtofolder, uniTime, outfile, flightdate)
     varName = 'segmentID';
     
-    pathtoflightsegments = [pathtofolder 'flightsegments/'];
+%     pathtoflightsegments = [pathtofolder 'flightsegments/'];
+    pathtoflightsegments = '/Users/heike/Documents/github/halo-flight-phase-separation/flight_phase_files/';
     
     segmentfiles = listFiles(pathtoflightsegments, 'full');
     for i=1:length(segmentfiles)
