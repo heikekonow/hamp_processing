@@ -37,14 +37,14 @@ table = {
     'vel_mat',   'time lat lon height';
     'interpolate_flag',  'time lat lon';
     'tb',  'time lat lon frequency';
-    'time', '';
-    'lat', '';
-    'lon', '';
-    'lat_mat', '';
-    'lon_mat', '';
-    'height', '';
-    'frequency', '';
-    'date', '';
-    'sonde_number', '';
-    'launch_time', ''
+    'time', ' ';
+    'lat', ' ';
+    'lon', ' ';
+    'lat_mat', ' ';
+    'lon_mat', ' ';
+    'height', ' ';
+    'frequency', ' ';
+    'date', ' ';
+    'sonde_number', ' ';
+    'launch_time', ' '
     };
