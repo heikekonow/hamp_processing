@@ -14,9 +14,9 @@ unify = 0;
 
 %% Specify time frame for data conversion
 % Start date
-t1 = '20200120';  
+t1 = '20200122';  
 % End date
-t2 = '20200124';
+t2 = '20200131';
 
 % ! Add flight information to file flight_dates.m if they aren't already in
 % there
