@@ -1,17 +1,17 @@
-function run_unifyGrid(flightdates_use, comment, contact)
+function run_unifyGrid(flightdates_use, comment, contact, redoBahamas, unify)
 
 tic 
 %% Switches
 % Unify data onto common grid
-unify = 1;
+% unify = 1;
 % Save data to netcdf
 savedata = 1;
 % Redo unified bahamas data, otherwise only load
-redoBahamas = 1;
+% redoBahamas = 1;
 
 %% Set version information
 version = 0;
-subversion = 4;
+subversion = 5;
 
 % %% Specify time frame for data conversion
 % % Start date
@@ -28,13 +28,7 @@ subversion = 4;
 t1 = flightdates_use{1};
 
 % Set path to root folder
-if str2num(t1)<20160101
-    pathtofolder = [getPathPrefix 'NARVAL-I_campaignData/'];
-elseif str2num(t1)<20190101
-    pathtofolder = [getPathPrefix 'NANA_campaignData/'];
-else
-    pathtofolder = [getPathPrefix 'EUREC4A_campaignData/'];
-end
+pathtofolder = [getPathPrefix getCampaignFolder(t1)];
 
 % %% Check if output folders exist, otherwise create
 % 
@@ -182,7 +176,7 @@ if savedata
                         varInfo = [varInfo; varInfoBahamas(indBahamasGeoInfo,:)];
                         
                         
-                    end
+                    end % if ~strcmp(instr{j}, 'bahamas')
 
                     % Get flight infos
                     flightdateDN = datenum(flightdates_use{i},'yyyymmdd');
@@ -206,6 +200,12 @@ if savedata
                     
                     % Add coorinates to variables to create georeferenced data
                     addGeoRef(outfile)
+                    
+                    %%%% Add flight segment identifier
+                    % Read time array for unified grid
+                    uniTime = dateround(unixtime2sdn(ncread(outfile, 'time')),'second');
+                    % Add segment identifier
+                    addFlightSegment(pathtofolder, uniTime, outfile, flightdates_use{i})
                 else
                     disp(['No ' instr{j} ' data found'])
                 end
@@ -276,10 +276,72 @@ function addGeoRef(outfile)
         
         disp(varnames{i})
         
-        if sum(indVar)~=0 && ~strcmp(table{indVar, 2}, '')
+        if sum(indVar)~=0 && ~strcmp(table{indVar, 2}, ' ')
             ncwriteatt(outfile, varnames{i}, 'coordinates', table{indVar, 2});
         end
     end
 end
 
+function addFlightSegment(pathtofolder, uniTime, outfile, flightdate)
+    varName = 'segmentID';
+    
+    pathtoflightsegments = [pathtofolder 'flightsegments/'];
+    
+    segmentfiles = listFiles(pathtoflightsegments, 'full');
+    for i=1:length(segmentfiles)
+        data(i) = ReadYaml(segmentfiles{i});
+    end
 
+%     segmentDates = cellfun(@(x) datestr(x.date, 'yyyymmdd'), data, 'uni', 0);
+    
+    indSegmentFile = [data.date]==datenum(flightdate, 'yyyymmdd');
+    
+    if sum(indSegmentFile)>0
+        numSegments = length(data(indSegmentFile).segments);
+
+        for i=1:numSegments
+
+            startTime(i) = datenum(data(indSegmentFile).segments{i}.start);
+            endTime(i) = datenum(data(indSegmentFile).segments{i}.xEnd);
+
+            kind{i} = data(indSegmentFile).segments{i}.kind;
+            name{i} = data(indSegmentFile).segments{i}.name;
+        end
+
+        id = 1:numSegments;
+        segmentIdentifier = zeros(size(uniTime));
+
+        for i=1:numSegments
+            disp(num2str(i))
+            indStart = find(uniTime==startTime(i));
+            indEnd = find(uniTime==endTime(i));
+
+            if sum(indStart)==0 || sum(indEnd)==0
+                error(['Interval time not found in uniTime ' num2str(i)])
+            end
+
+            segmentIdentifier(indStart:indEnd) = i;
+        end
+
+        % Generate string to document segment identifiers
+        a = strcat(cellstr(num2str(id')),repmat(':',numSegments,1), name');
+        b = strcat(a, repmat({', '}, numSegments, 1));
+        segComment = ['Flight segment ID; ' b{:}];
+
+        % Get info of time dimension in file
+        ncid = netcdf.open(outfile,'NC_NOWRITE');
+        dimid = netcdf.inqDimID(ncid,'time');
+        [~, dimlen] = netcdf.inqDim(ncid,dimid);
+        netcdf.close(ncid)
+
+
+        nccreate(outfile, varName, 'Dimensions', {'time', dimlen}, ...
+            'Format', 'netcdf4', 'Datatype', 'uint32', 'DeflateLevel', 5);
+        ncwrite(outfile, varName, segmentIdentifier)
+        % Write unit attribute
+        ncwriteatt(outfile, varName, 'units', '')
+
+        % Write long_name attribute
+        ncwriteatt(outfile, varName, 'long_name',segComment)
+    end
+end

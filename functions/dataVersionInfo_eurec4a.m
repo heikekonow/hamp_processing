@@ -5,4 +5,5 @@ versionInfo = {0,   0,  'Raw data without any modification';
                0,   2,  'Reprocessed Bahamas data used (only for NARVAL-II)';
                0,   3,  'Bahamas, Radiometer, and dropsonde data linearily interpolated';
                0,   4,  'add location information to datasets';
+               0,   5,  'add flight segment identifier';
               };
