@@ -1,3 +1,29 @@
+%% start_hamp_processing
+%   start_hamp_processing - run script to start processing of unified HAMP data
+%
+%   Syntax:  start_hamp_processing
+%
+%   Inputs:
+%       - Set comment, contact, processing date in beginning of script.
+%       - Add flight information to file flight_dates.m if they aren't already in
+%         there
+%
+%   Outputs:
+%       NetCDF files with unified data
+%
+%   Example:
+%
+%       start_hamp_processing
+%
+%
+%   See also: 
+%
+%   Author: Dr. Heike Konow
+%   Meteorological Institute, Hamburg University
+%   email address: heike.konow@uni-hamburg.de
+%   Website: http://www.mi.uni-hamburg.de/
+%   April 2020; Last revision: 
+
 
 %% Comments for data files
 % Specify comment to be included into data files

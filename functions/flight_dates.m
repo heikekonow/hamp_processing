@@ -1,3 +1,5 @@
+function [NARVALdates, NARVALdatenum] = flight_dates
+
 % List of flight dates, flight numbers and corresponding campaign names
 
 NARVALdates =  {'20131210','01','NARVAL-South', 1;...
