@@ -55,9 +55,8 @@ end
 
 Files = vertcat(filescells{:});
 
-% Remove entries for directories '.' and '..'
-Files(strcmp(Files, '.')) = [];
-Files(strcmp(Files, '..')) = [];
+% Remove entries beginning with dot
+Files(strncmp(Files, '.', 1))
 
 % If extra options are given
 if nargin>1
