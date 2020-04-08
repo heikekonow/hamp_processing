@@ -56,7 +56,7 @@ end
 Files = vertcat(filescells{:});
 
 % Remove entries beginning with dot
-Files(strncmp(Files, '.', 1))
+Files(strncmp(Files, '.', 1)) = [];
 
 % If extra options are given
 if nargin>1
