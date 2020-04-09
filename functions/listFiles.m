@@ -111,6 +111,10 @@ if nargin>1
             Files = Files{end};
         end
     end
+    
+    if any(strcmp(varargin, 'mat'))
+        Files = [Files{:}];
+    end
 end
 
 %------------- END OF CODE --------------
