@@ -39,13 +39,13 @@
 
 function [std_zMax,std_zMax_Sfc,tOffsetVec,zMax] = testRadarBahamasShiftTime(RadarFile,varargin)
 
-% set locations
-% RadarFile = '/data/share/u231/u231107/HAMP/mira36_all_v2/20140118_all_g40_v2.mmclx';
-% BahamasPath = '/data/share/u231/u231107/HAMP/bahamas_all/';
-% BahamasPath = '/Users/heike/Work/NARVAL-II/data/work/bahamas/';
-% BahamasPath = '/Users/heike/Work/NANA_campaignData/bahamas/';
-BahamasPath = '/data/share/narval/work/heike/NANA_campaignData/bahamas/';
-figuresSavePath = '/data/share/narval/work/heike/NANA_campaignData/figures/';
+%% Set locations
+% Analyze path string to get base path
+ind_slash = regexp(RadarFile,'/');
+% Set path for bahamas
+BahamasPath = [RadarFile(1:ind_slash(end-1)) 'bahamas/'];
+% Set path for figures
+figuresPath = [RadarFile(1:ind_slash(end-1)) 'figures/'];
 
 % define vertical grid
 zGrid = -500:30:14000;
@@ -58,8 +58,7 @@ tRadar = unixtime2sdn(double(ncread(RadarFile,'time')));
 date = datestr(tRadar(1),'yyyymmdd');
 
 % Search for corresponding bahamas data file
-BahamasFile = listFiles([BahamasPath '*' datestr(tRadar(1),'yyyymmdd') '*.nc']);
-BahamasFile = [BahamasPath BahamasFile{1}];
+BahamasFile = listFiles([BahamasPath '*' datestr(tRadar(1),'yyyymmdd') '*.nc'], 'full', 'mat');
 
 % load bahamas time
 % tBahamas = unixtime2sdn(ncread(BahamasFile,'utc_time'));
@@ -159,7 +158,7 @@ else
 end
 
 if strcmp(varargin{1},'normal')
-    export_fig([figuresSavePath 'offsetTest_' mode '_' datestr(tBahamas(1),'yyyymmdd')],'-png')
+    export_fig([figuresPath 'offsetTest_' mode '_' datestr(tBahamas(1),'yyyymmdd')],'-png')
 end
 
 %------------- END OF CODE --------------

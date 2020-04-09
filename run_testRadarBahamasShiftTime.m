@@ -69,65 +69,43 @@ clear; close all
 % vary:     vary assumed offset between first and second half of flight by
 %           -2 seconds
 % mask:     mask previously defined time intervals (i.e. error measurements)
-mode = 'mask';
+mode = 'vary';
 % %%%%%%%%%%%%%%%%%%
 
 % %%%%%%%%%%%%%%%%%%
 % Save data?
-savedata = 0;
+savedata = true;
+% %%%%%%%%%%%%%%%%%%
+
+% %%%%%%%%%%%%%%%%%%
+% Calculate offsets?
+calc = true;
+% %%%%%%%%%%%%%%%%%%
+
+% %%%%%%%%%%%%%%%%%%
+% Only analyze a single date? Specify as string 'yyyymmdd' otherwise, leave
+% empty ''
+singleDate = '';
 % %%%%%%%%%%%%%%%%%%
 
 % %%%%%%%%%%%%%%%%%%
 % Campaign name
-campaignName = 'NAWDEX';
+% campaignName = 'NAWDEX';
 % campaignName = 'NARVAL-II';
-% %%%%%%%%%%%%%%%%%%
-
-% %%%%%%%%%%%%%%%%%%
-% Set path where radar data files (*.mmclx) can be found
-% NARVAL-I
-% RadarPath = '/data/share/u231/u231107/HAMP/mira36_all_v2/';
-% NARVAL-II
-% RadarPath = '/Users/heike/Work/NARVAL-II/data/work/radar/';
-% Combined Data from both campaigns
-% RadarPath = '/Users/heike/Work/NANA_campaignData/radar/';
-RadarPath = '/data/share/narval/work/heike/NANA_campaignData/radar/';
+campaignName = 'EUREC4A';
 % %%%%%%%%%%%%%%%%%%
 
 
 %% Preparations
 
 % %%%%%%%%%%%%%%%%%%
-% Specify, if only selected times should be processed
-% NARVAL-II and NAWDEX
-% selectTime = '';
-if strcmp(campaignName,'NARVAL-II')
-    % NARVAL-II
-    % selectTime = {'*201608*'};
-elseif strcmp(campaignName,'NAWDEX')
-    % NAWDEX
-    selectTime = {'*201609*'; '*201610*'};
-else
-    error('Please specify valid campaign name')
-end
+% Set path where radar moment files can be found
+radarPath = [getPathPrefix getCampaignFolder(getCampaignDates(campaignName)) 'radar/'];
+figuresPath = [getPathPrefix getCampaignFolder(getCampaignDates(campaignName)) 'figures/'];
 
 % %%%%%%%%%%%%%%%%%%
 % List all radar data files in directory RadarPath
-% NARVAL-I
-% radarFiles = listFiles([RadarPath '*_v2.mmclx']);
-% NARVAL-II
-% radarFiles = listFiles([RadarPath selectTime '*.nc']);
-% NAWDEX
-% radarFiles = [listFiles([RadarPath selectTime{1} '*.nc']);...
-%     listFiles([RadarPath selectTime{2} '*.nc'])];
-% This should work for all times defined above
-radarFiles = listFiles([repmat(RadarPath,length(selectTime),1) ...
-    cell2mat(selectTime(:)) repmat('*.nc',length(selectTime),1)]);
-
-% !!!!!!!! Attention! Change later, when radar data from RF13 (NAWDEX) is
-% reprocessed !!!!!!!
-% radarFiles(strncmp('20161018',radarFiles(:),8)) = [];
-% radarFiles = radarFiles(strncmp('20161018',radarFiles(:),8));
+radarFiles = listFiles([radarPath '*' singleDate '*'], 'full');
 
 % Preallocate cells
 std_zMax = cell(length(radarFiles),1);
@@ -137,36 +115,40 @@ zMax = cell(length(radarFiles),1);
 
 %% Test time offset
 
-% Loop all files found
-for i=1:length(radarFiles)
-    % Display file info
-    disp(radarFiles{i})
-    
-    % Shift radar and bahamas times against each other
-    
-    % Cases for different type of analysis (as defined in the beginning)
-    if strcmp(mode,'normal')       % offset +/- 2 seconds
-        [std_zMax{i},std_zMax_Sfc{i},tOffsets{i},zMax{i}] = ...
-                testRadarBahamasShiftTime([RadarPath radarFiles{i}],'');
-    elseif strcmp(mode,'vary')     % different offsets in first and second half of flight
-        [std_zMax{i},std_zMax_Sfc{i},tOffsets{i},zMax{i}] = ...
-                testRadarBahamasShiftTime([RadarPath radarFiles{i}],'vary');
-    elseif strcmp(mode,'mask')     % mask time intervals
-        [std_zMax{i},std_zMax_Sfc{i},tOffsets{i},zMax{i}] = ...
-                testRadarBahamasShiftTime([RadarPath radarFiles{i}],'mask');
+if calc
+    % Loop all files found
+    for i=1:length(radarFiles)
+        % Display file info
+        disp(radarFiles{i})
+
+        % Shift radar and bahamas times against each other
+
+        % Cases for different type of analysis (as defined in the beginning)
+        if strcmp(mode,'normal')       % offset +/- 2 seconds
+            [std_zMax{i},std_zMax_Sfc{i},tOffsets{i},zMax{i}] = ...
+                    testRadarBahamasShiftTime(radarFiles{i},'');
+        elseif strcmp(mode,'vary')     % different offsets in first and second half of flight
+            [std_zMax{i},std_zMax_Sfc{i},tOffsets{i},zMax{i}] = ...
+                    testRadarBahamasShiftTime(radarFiles{i},'vary');
+        elseif strcmp(mode,'mask')     % mask time intervals
+            [std_zMax{i},std_zMax_Sfc{i},tOffsets{i},zMax{i}] = ...
+                    testRadarBahamasShiftTime(radarFiles{i},'mask');
+        end
+    %     
     end
-%     
+    % Save data
+    if savedata
+        save([getPathPrefix getCampaignFolder(getCampaignDates(campaignName))...
+                'mat/std_ZmaxHeigh_' mode '.mat'],...
+                'std_zMax','tOffsets','std_zMax_Sfc','zMax','radarFiles')
+    end
+
+else
+    load([getPathPrefix getCampaignFolder(getCampaignDates(campaignName))...
+            'mat/std_ZmaxHeigh_' mode '.mat'])
 end
 
-% Save data
-if savedata
-    if strcmp(computer,'MACI64')
-        save(['/Users/heike/Work/matlab-data/std_ZmaxHeigh_' mode '.mat'],'std_zMax','tOffsets','std_zMax_Sfc','zMax','radarFiles')
-    else
-        % % % save('../matlab-data/std_ZmaxHeightMask.mat','std_zMax','tOffsets','std_zMax_Sfc','zMax','radarFiles')
-        save(['../matlab-data/std_ZmaxHeigh_' mode '.mat'],'std_zMax','tOffsets','std_zMax_Sfc','zMax','radarFiles')
-    end
-end
+
 
 %% Plot results
 
@@ -174,7 +156,7 @@ close all
 
 if strcmp(mode,'normal')|| strcmp(mode,'mask')
     figure(1)
-    set(gcf,'Position',[1923 484 1276 635])
+    set(gcf,'Position',[777 269 1144 836])
 end
 if strcmp(mode,'vary')
     figure(2)
@@ -182,12 +164,15 @@ if strcmp(mode,'vary')
     % xString = {'to/to+2','to/to+1','to/to','to+1/to','to+2/to'};
     xString = {'to/to-2','to/to-1','to/to','to-1/to','to-2/to'};
 end
+
+plotCols = 5;
+plotRows = ceil(length(radarFiles)/plotCols);
 for i=1:length(radarFiles)
-    datestring = radarFiles{i}(1:8);
+    datestring = radarFiles{i}(length(radarPath)+1:length(radarPath)+8);
     
     if strcmp(mode,'normal') || strcmp(mode,'mask')
         figure(1)
-        subplot(3,5,i)
+        subplot(plotRows,plotCols,i)
 %         plot(tOffsets{i},std_zMax{i},'LineWidth',2)
         plot(tOffsets{i},std_zMax_Sfc{i},'LineWidth',2)
         finetunefigures
@@ -200,7 +185,7 @@ for i=1:length(radarFiles)
     
     if strcmp(mode,'vary')
         figure(2)
-        subplot(4,4,i)
+        subplot(plotRows,plotCols,i)
     %     plot(tOffsets{i},std_zMax_Sfc{i})
 %         plot(std_zMax_Sfc{i},'LineWidth',2)
         plot(std_zMax_Sfc{i},'LineWidth',2)
@@ -215,8 +200,8 @@ for i=1:length(radarFiles)
     end
 end
 
-savefile = [RadarPath(1:36) 'figures/' campaignName '_tOffset_' mode];
-export_fig(savefile,'-png')
+figurepath = [figuresPath campaignName '_radar_tOffset_' mode];
+export_fig(figurepath,'-png')
 
 % Code for saving figure and copying to dropbox folder (to include in tex
 % file for report)
