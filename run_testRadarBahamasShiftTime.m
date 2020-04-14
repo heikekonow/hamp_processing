@@ -74,12 +74,12 @@ mode = 'vary';
 
 % %%%%%%%%%%%%%%%%%%
 % Save data?
-savedata = true;
+savedata = false;
 % %%%%%%%%%%%%%%%%%%
 
 % %%%%%%%%%%%%%%%%%%
 % Calculate offsets?
-calc = true;
+calc = false;
 % %%%%%%%%%%%%%%%%%%
 
 % %%%%%%%%%%%%%%%%%%
@@ -102,6 +102,7 @@ campaignName = 'EUREC4A';
 % Set path where radar moment files can be found
 radarPath = [getPathPrefix getCampaignFolder(getCampaignDates(campaignName)) 'radar/'];
 figuresPath = [getPathPrefix getCampaignFolder(getCampaignDates(campaignName)) 'figures/'];
+figurepath = [figuresPath campaignName '_radar_tOffset_' mode];
 
 % %%%%%%%%%%%%%%%%%%
 % List all radar data files in directory RadarPath
@@ -115,6 +116,7 @@ zMax = cell(length(radarFiles),1);
 
 %% Test time offset
 
+% Calculate offsets
 if calc
     % Loop all files found
     for i=1:length(radarFiles)
@@ -134,15 +136,16 @@ if calc
             [std_zMax{i},std_zMax_Sfc{i},tOffsets{i},zMax{i}] = ...
                     testRadarBahamasShiftTime(radarFiles{i},'mask');
         end
-    %     
+    
     end
-    % Save data
+    % Save data to mat file
     if savedata
         save([getPathPrefix getCampaignFolder(getCampaignDates(campaignName))...
                 'mat/std_ZmaxHeigh_' mode '.mat'],...
                 'std_zMax','tOffsets','std_zMax_Sfc','zMax','radarFiles')
     end
 
+% Load offset test data
 else
     load([getPathPrefix getCampaignFolder(getCampaignDates(campaignName))...
             'mat/std_ZmaxHeigh_' mode '.mat'])
@@ -152,61 +155,63 @@ end
 
 %% Plot results
 
+% Housekeeping
 close all
 
-if strcmp(mode,'normal')|| strcmp(mode,'mask')
-    figure(1)
-    set(gcf,'Position',[777 269 1144 836])
-end
+% New figure
+figure(1)
+% Set figure size and position
+set(gcf,'Position',[777 269 1144 836])
+
+% If the mode is to vary time offsets between first and second half of
+% flights
 if strcmp(mode,'vary')
-    figure(2)
-    set(gcf,'Position',[1923 273 1276 846])
-    % xString = {'to/to+2','to/to+1','to/to','to+1/to','to+2/to'};
-    xString = {'to/to-2','to/to-1','to/to','to-1/to','to-2/to'};
+    
+    % Generate array for x-ticks
+    tOffsets = cellfun(@(x) 1:length(x), std_zMax_Sfc, 'uni', 0);
+    
+    % Generate strings for x-tick labels
+    xString = {'to/to-2','to/to','to-2/to'};
 end
 
+% Set number of columns for subplots
 plotCols = 5;
+% Calculate neccessary number of rows for subplots
 plotRows = ceil(length(radarFiles)/plotCols);
+
+% Loop all radar files
 for i=1:length(radarFiles)
+    
+    % Get date string from file name
     datestring = radarFiles{i}(length(radarPath)+1:length(radarPath)+8);
     
-    if strcmp(mode,'normal') || strcmp(mode,'mask')
-        figure(1)
-        subplot(plotRows,plotCols,i)
-%         plot(tOffsets{i},std_zMax{i},'LineWidth',2)
-        plot(tOffsets{i},std_zMax_Sfc{i},'LineWidth',2)
-        finetunefigures
-        xlabel('Time Offset (s)')
-        ylabel('std')
-        xlim([tOffsets{i}(1) tOffsets{i}(end)])
-        title(datestring)
-        setFontSize(gcf,14)
-    end
+    % Call figure
+    figure(1)
     
+    % Create subplot
+    sh = subplot(plotRows,plotCols,i);
+    
+    % Plot
+    plot(tOffsets{i},std_zMax_Sfc{i},'LineWidth',2)
+    % Make pretty
+    finetunefigures
+    xlabel('Time Offset (s)')
+    ylabel('std')
+    xlim([tOffsets{i}(1) tOffsets{i}(end)])
+    title(datestring)
+    setFontSize(gcf,14)
+
     if strcmp(mode,'vary')
-        figure(2)
-        subplot(plotRows,plotCols,i)
-    %     plot(tOffsets{i},std_zMax_Sfc{i})
-%         plot(std_zMax_Sfc{i},'LineWidth',2)
-        plot(std_zMax_Sfc{i},'LineWidth',2)
-        finetunefigures
-        xlabel('Time Offset (s)')
-        ylabel('std')
-        xlim([1 5])
-    %     xlim([tOffsets{i}(1) tOffsets{i}(end)])
-        title(datestring)
+        % Set ticks
+        sh.XTick = 1:2:5;
+        % Set tick labels
         set(gca,'XTickLabel',xString)
-        setFontSize(gcf,14)
+
     end
 end
 
-figurepath = [figuresPath campaignName '_radar_tOffset_' mode];
-export_fig(figurepath,'-png')
 
-% Code for saving figure and copying to dropbox folder (to include in tex
-% file for report)
-%
-% export_fig('/Users/heike/Work/NANA_campaignData/figures/n2_tOffset','-png')
-% !cp /Users/heike/Work/NANA_campaignData/figures/n2_tOffset.png /Users/heike/Dropbox/Apps/ShareLaTeX/HAMP_Data_Processing/figures/
+% Save figure
+export_fig(figurepath,'-png')
 
 %------------- END OF CODE --------------

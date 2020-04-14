@@ -1,8 +1,8 @@
-%% FUNCTION_NAME
-%   FUNCTION_NAME - One line description of what the function or script performs (H1 line)
-%   Optional file header info (to give more details about the function than in the H1 line)
-%   Optional file header info (to give more details about the function than in the H1 line)
-%   Optional file header info (to give more details about the function than in the H1 line)
+%% testRadarBahamasShiftTime
+%   testRadarBahamasShiftTime - Shift time arrays of radar and bahamas against each other
+%       Optional file header info (to give more details about the function than in the H1 line)
+%       Optional file header info (to give more details about the function than in the H1 line)
+%       Optional file header info (to give more details about the function than in the H1 line)
 %
 %   Syntax:  [output1,output2] = function_name(input1,input2,input3)
 %
@@ -67,18 +67,15 @@ tBahamas = unixtime2sdn(ncread(BahamasFile,'TIME'));
 % Get offset for specific day
 if strcmp(varargin{1},'vary')
     tOffsetVec = timeOffsetLookup(date);
-%     tOffsetVec = timeOffsetLookupNewDONOTUSE(date);
+
 else
     timeOffset = timeOffsetLookup(date);
     tOffsetVec = timeOffset-3:timeOffset+3;    
 end
 
 % location
-% hGPS = ncread(BahamasFile,'galt');
 hGPS = ncread(BahamasFile,'IRS_ALT');
-% % flight data
-% roll = ncread(BahamasFile,'roll');
-% pitch = ncread(BahamasFile,'pitch');
+% attitude
 roll = ncread(BahamasFile,'IRS_PHI');
 pitch = ncread(BahamasFile,'IRS_THE');
 
