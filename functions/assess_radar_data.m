@@ -41,7 +41,7 @@ figures = false;
 % If error time steps should be calculated from indices
 calc = false;
 
-% Set campaign to investigate
+% Set campaign to analyse
 campaign = 'EUREC4A';
 
 % Set minimum altitude for observations

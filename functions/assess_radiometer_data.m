@@ -1,44 +1,122 @@
+%% assess_radiometer_data
+%   assess_radiometer_data - One line description of what the function or script performs (H1 line)
+%   Optional file header info (to give more details about the function than in the H1 line)
+%   Optional file header info (to give more details about the function than in the H1 line)
+%   Optional file header info (to give more details about the function than in the H1 line)%
+%
+%   Syntax:  [output1,output2] = function_name(input1,input2,input3)
+%
+%   Inputs:
+%       none
+%
+%   Outputs:
+%       output1 - Description
+%       output2 - Description
+%
+%   Example: 
+%       Line 1 of example
+%       Line 2 of example
+%       Line 3 of example
+%
+%   Other m-files required: none
+%   Subfunctions: none
+%   MAT-files required: none
+%
+%   See also: 
+%
+%   Author: Dr. Heike Konow
+%   Meteorological Institute, Hamburg University
+%   email address: heike.konow@uni-hamburg.de
+%   Website: http://www.mi.uni-hamburg.de/
+%   DATE created; Last revision: April 2020
+
+%------------- BEGIN CODE --------------
+
+
 function assess_radiometer_data
 
-% clear; 
+% Housekeeping 
 close all
 
+%% Set parameters
+% Set if figures should be produced
 figures = 1;
+% Set if error time steps should be calculated from indices
 calc = 0;
+% Set if manually calculated error percentages should be used
 man_vals = 1;
 
-campaign = 'NARVAL-I';
-dates = get_campaignDates(campaign);
+% Set campaign to analyse
+% campaign = 'NARVAL-II';
+campaign = 'EUREC4A';
 
+
+%% Get dates and folder paths
+
+% Get dates for campaign
+dates = getCampaignDates(campaign);
+% Set path to data
+basefolder = [getPathPrefix getCampaignFolder(dates{1})];
+% basefolder = '/Users/heike/Documents/NANA_campaignData/';
+pathRadiometer = [basefolder 'radiometer/'];
+
+radiometerStrings = {'183', '11990', 'KV'};
+
+path = cellfun(@(x) [pathRadiometer x '/'], radiometerStrings, 'uni', false);
+
+figurepath = '/Users/heike/Documents/eurec4a/analyses/radiometer_errors/';
+
+% If figures should be generated
 if figures
+    % Loop dates
     for i=1:length(dates)
+        
+        % Preallocate cell array
+        tb = cell(length(radiometerStrings),1);
+        
+        % Loop radiometers
+        for j=1:length(radiometerStrings)
+            
+            % Get file path
+            filepath = listFiles([path{j} '*' dates{i}(3:end) '*'], 'full', 'mat');
+            
+            if ~isempty(filepath)
+                % Read data
+                tb{j} = ncread(filepath,'TBs');
+                f{j} = ncread(filepath, 'frequencies');
+    %             t{j} = ncread(filepath, 'time');
 
-        path{1} = [getPathPrefix getCampaignFolder(dates{i}) 'radiometer/183/' dates{i}(3:end) '.BRT.NC'];
-        path{2} = [getPathPrefix getCampaignFolder(dates{i}) 'radiometer/11990/' dates{i}(3:end) '.BRT.NC'];
-        path{3} = [getPathPrefix getCampaignFolder(dates{i}) 'radiometer/KV/' dates{i}(3:end) '.BRT.NC'];
-
-        tb = cell(3,1);
-        for j=1:3
-            tb{j} = ncread(path{j},'TBs');
-            t{j} = ncread(path{j}, 'time');
-
-            figure
-            set(gcf,'Position',[1992 550 1620 376])
-            plot(tb{j}','LineWidth',2)
-            tick2text(gca,'xformat','%.0f')
-
-            if j==1
-                title([dates{i} ' - 183'])
-            elseif j==2
-                title([dates{i} ' - 11990'])
-            elseif j==3
-                title([dates{i} ' - KV']) 
+                % New figure
+                figure
+                % Set size and position
+                set(gcf,'Position',[99 427 1711 629])
+                % Plot brightness temperatures
+                plot(tb{j}','LineWidth',2)
+                % Change style of x ticks
+                tick2text(gca,'xformat','%.0f')
+                % Axes labels
+                xlabel('Index')
+                ylabel('Brightness temperature (K)')
+                % Set figure title
+                title([dates{i} ' - ' radiometerStrings{j} ])
+                
+                % Add legend
+                l = cellstr(num2str(f{j}));
+                plotLegendAsColoredText(gca,l,[0.15 0.89],0.03)
+                
+                % Make pretty
+                finetunefigures
+                setFontSize(gcf, 18);
+                
+%                 export_fig([figurepath dates{i} '_' radiometerStrings{j}], '-png')
             end
         end
+        
+        % Pause code and analyse figure
+        disp('Paused. Press any key to continue')
+        pause
 
-%         pause
-
-        clear tb t path
+        clear tb t
         close all
     end
 end
@@ -437,3 +515,4 @@ end
 index = cell2mat(index);
 
 end
+%------------- END OF CODE --------------
