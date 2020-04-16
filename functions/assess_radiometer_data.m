@@ -1,8 +1,13 @@
 %% assess_radiometer_data
-%   assess_radiometer_data - One line description of what the function or script performs (H1 line)
-%   Optional file header info (to give more details about the function than in the H1 line)
-%   Optional file header info (to give more details about the function than in the H1 line)
-%   Optional file header info (to give more details about the function than in the H1 line)%
+%   assess_radiometer_data - use this to assess radiometer measurement errors
+%   In the beginning of the program, set the mode for this program:
+%       
+%       Set figures = true if you want to look through figures from 
+%           individual flights and note error and saw tooth occurrences.
+%           Note error and saw tooth interval indices in file
+%           'radiometerErrorsLookupInt.m'
+%       Set calc = true if you want to calculate error percentages.
+%       Set overview = true if you want to produce overview figure.
 %
 %   Syntax:  [output1,output2] = function_name(input1,input2,input3)
 %
@@ -10,17 +15,11 @@
 %       none
 %
 %   Outputs:
-%       output1 - Description
-%       output2 - Description
+%       none
 %
 %   Example: 
-%       Line 1 of example
-%       Line 2 of example
-%       Line 3 of example
+%       
 %
-%   Other m-files required: none
-%   Subfunctions: none
-%   MAT-files required: none
 %
 %   See also: 
 %
@@ -28,7 +27,7 @@
 %   Meteorological Institute, Hamburg University
 %   email address: heike.konow@uni-hamburg.de
 %   Website: http://www.mi.uni-hamburg.de/
-%   DATE created; Last revision: April 2020
+%   June 2017; Last revision: April 2020
 
 %------------- BEGIN CODE --------------
 
@@ -40,11 +39,12 @@ close all
 
 %% Set parameters
 % Set if figures should be produced
-figures = 1;
+figures = false;
 % Set if error time steps should be calculated from indices
-calc = 0;
-% Set if manually calculated error percentages should be used
-man_vals = 1;
+calc = false;
+% Set if overview figure should be produced
+overview = true;
+
 
 % Set campaign to analyse
 % campaign = 'NARVAL-II';
@@ -59,6 +59,7 @@ dates = getCampaignDates(campaign);
 basefolder = [getPathPrefix getCampaignFolder(dates{1})];
 % basefolder = '/Users/heike/Documents/NANA_campaignData/';
 pathRadiometer = [basefolder 'radiometer/'];
+pathBahamas = [basefolder 'bahamas/'];
 
 radiometerStrings = {'183', '11990', 'KV'};
 
@@ -84,7 +85,6 @@ if figures
                 % Read data
                 tb{j} = ncread(filepath,'TBs');
                 f{j} = ncread(filepath, 'frequencies');
-    %             t{j} = ncread(filepath, 'time');
 
                 % New figure
                 figure
@@ -92,6 +92,7 @@ if figures
                 set(gcf,'Position',[99 427 1711 629])
                 % Plot brightness temperatures
                 plot(tb{j}','LineWidth',2)
+                tooltipstr('%.0f')
                 % Change style of x ticks
                 tick2text(gca,'xformat','%.0f')
                 % Axes labels
@@ -101,8 +102,8 @@ if figures
                 title([dates{i} ' - ' radiometerStrings{j} ])
                 
                 % Add legend
-                l = cellstr(num2str(f{j}));
-                plotLegendAsColoredText(gca,l,[0.15 0.89],0.03)
+                dateindexSawtooth = cellstr(num2str(f{j}));
+                plotLegendAsColoredText(gca,dateindexSawtooth,[0.15 0.89],0.03)
                 
                 % Make pretty
                 finetunefigures
@@ -123,396 +124,241 @@ end
 
 %% Convert indices to times
 if calc
-%     radiometerErrorsLookup
-    radiometerErrorsLookupInt
-
+    % Load error indices
+    [errors, sawtooth] = radiometerErrorsLookupInt;
+    
+    % Preallocate arrays
     errorcode = cell(10,3);
-    pathBahamas = cell(1,3);
-    bahamasFile = cell(1,3);
-    tBah = cell(1,3);
-
+    tBahamas = cell(1,3);
+    
+    % Create figure
     figure
     set(gcf,'Position',[-1806 41 1731 1068])
 
-    k = 1;
+%     k = 1;
+    numPlotRows = 3;
 
+    % Loop dates
     for i=1:length(dates)
         
+        % Output
         disp([num2str(i) ' - ' dates{i}])
 
-        path{1} = [getPathPrefix 'NANA_campaignData/radiometer/183/' dates{i}(3:end) '*.NC'];
-        path{2} = [getPathPrefix 'NANA_campaignData/radiometer/11990/' dates{i}(3:end) '*.NC'];
-        path{3} = [getPathPrefix 'NANA_campaignData/radiometer/KV/' dates{i}(3:end) '*.NC'];
+        % Get file path
+        bahamasFile = listFiles([pathBahamas '*' dates{i} '*'], 'full', 'mat');
+        
+        % Read bahamas time
+        tBahamas{i} = unixtime2sdn(ncread(bahamasFile,'TIME'));
 
-        pathBahamas{i} = [getPathPrefix 'NANA_campaignData/bahamas/'];
-        bahamasFile{i} = cell2mat(listFiles([pathBahamas{i} '*' dates{i} '*.nc']));
-        tBah{i} = unixtime2sdn(ncread([pathBahamas{i} bahamasFile{i}],'TIME'));
-
+        % Preallocate arrays
         t = cell(3,1);
         tUse = cell(3,1);
-        for j=1:3
-            filepath = listFiles(path{j},'full');
-            time = cell(1,length(filepath));
-            for m=1:length(filepath)
-                 time{m} = time2001_2sdn(double(ncread(filepath{m},'time')));
+        
+        
+        % Loop radiometers
+        for j=1:length(radiometerStrings)
+            
+            % Get index of radiometer module in error cell
+            ind_errorRadiometer = strcmp([errors{2,:}], radiometerStrings{j});
+            % Get index of radiometer module in error cell
+            ind_sawtoothRadiometer = strcmp([sawtooth{2,:}], radiometerStrings{j});
+            
+            % Get file path for radiometer data
+            filepath = listFiles([path{j} '*' dates{i}(3:end) '*'], 'full', 'mat');
+            % Preallocate
+            time = cell(1,size(filepath,1));
+            
+            % Loop all found files
+            for m=1:size(filepath,1)
+                 time{m} = time2001_2sdn(double(ncread(filepath(m,:),'time')));
             end
+            % Transpose to concatenate
             time = time';
+            % Concatenate
             t{j} = transpose(cell2mat(time));
             
             clear time
             
+            % Identify jumps in radiometer time
             ind = indRadiometerTimeJumps(t{j});
+            % Set times with jumps to nan
             t{j}(ind) = nan;
+            % Copy
             tUse{j} = t{j};
-%             tUse{j} = linspace(t{j}(1),t{j}(end),numel(t{j}));
 
             % Get index of dates in error cell
-            l = find(strcmp(errors{1,j}(:,1),dates{i}));
+            dateindexError = strcmp(errors{1,ind_errorRadiometer}(:,1),dates{i});
             
-            % give length of radiometer time
+            % Initialize error code array with zeros
             errorcode{i,j} = zeros(size(t{j}));
             
-            if ~cellfun(@isempty,errors{1,j}{l,2})
-                index = indexFromError(errors{1,j}{l,2});
+            % If errors were found
+            if ~cellfun(@isempty,errors{1,ind_errorRadiometer}{dateindexError,2})
+                % Create array from error intervals
+                index = indexFromError(errors{1,ind_errorRadiometer}{dateindexError,2});
                 % if error, set to 1
                 errorcode{i,j}(index) = 1;
             end
             
-            if j==1
-                l = find(strcmp(sawtooth{1,j}(:,1),dates{i}));
-                if ~cellfun(@isempty,sawtooth{1,j}{l,2})
-                    index = indexFromError(sawtooth{1,j}{l,2});
-                    
-                    % if saw tooth set to 2
-                    errorcode{i,j}(index) = 2;
-                end
+            % Get index of dates in sawtooth cell
+            dateindexSawtooth = find(strcmp(sawtooth{1,ind_sawtoothRadiometer}(:,1),dates{i}));
+            % If sawtooth was found
+            if ~cellfun(@isempty,sawtooth{1,ind_sawtoothRadiometer}{dateindexSawtooth,2})
+                % Create array from error intervals
+                index = indexFromError(sawtooth{1,ind_sawtoothRadiometer}{dateindexSawtooth,2});
+                % if saw tooth set to 2
+                errorcode{i,j}(index) = 2;
             end
+
             
             % if before take-off or after landing, set to 3
-            errorcode{i,j}(1:find(tUse{j}<tBah{i}(1),1,'last')) = 3;
-            errorcode{i,j}(find(tUse{j}>tBah{i}(end),1,'first'):end) = 3;
-
+            errorcode{i,j}(1:find(tUse{j}<tBahamas{i}(1),1,'last')) = 3;
+            errorcode{i,j}(find(tUse{j}>tBahamas{i}(end),1,'first'):end) = 3;
+            
+            % Copy variables
             e{i,j} = errorcode{i,j};
             tPlot{i,j} = t{j};
+            % Remove entries before take off or after landing
             tPlot{i,j}(e{i,j}==3) = [];
             e{i,j}(e{i,j}==3) = [];
-%             tPlot{i,j} = linspace(tBah{i}(1),tBah{i}(end),numel(e{i,j}));
 
         end
         
-        if strcmp(campaign,'NAWDEX')
-            subplot(3,5,k)
-        elseif strcmp(campaign,'NARVAL-II')
-            subplot(3,4,k)
-        end
-    %     plot(t{1},errorcode{i,1},t{2},errorcode{i,2},t{3},errorcode{i,3},...
-    %             'LineWidth',2)
-
-%         if ~sum(e{i,1})==0
-%             fill([tPlot{i,1} fliplr(tPlot{i,1})],[zeros(1,length(tPlot{i,1}));fliplr(e{i,1}')]',...
-%                 'b','FaceColor',[195, 212, 232]./255,'EdgeColor',[79, 129, 189]./255,...
-%                 'LineWidth',2)
-%         end
-%         hold on  
-% 
-%         if ~sum(e{i,2})==0
-%             fill([tPlot{i,2} fliplr(tPlot{i,2})],[zeros(1,length(tPlot{i,2}));fliplr(e{i,2}')]',...
-%                     'r','FaceColor',[234, 168, 168]./255,'EdgeColor',[192, 0, 0]./255,...
-%                     'LineWidth',2)
-%         end
-%         if ~sum(e{i,3})==0 
-%             fill([tPlot{i,3} fliplr(tPlot{i,3})],[zeros(1,length(tPlot{i,3}));fliplr(e{i,3}')]',...
-%                     'y','FaceColor',[255, 238, 168]./255,'EdgeColor',[255, 204, 0]./255,...
-%                     'LineWidth',2)
-%         end
+        % Create subplot
+        subplot(numPlotRows, ceil(length(dates)/numPlotRows), i)
         
-
+        % Plot error time lines
         plot(tPlot{i,1},e{i,1},tPlot{i,2},e{i,2},tPlot{i,3},e{i,3},...
                 'LineWidth',2)
-        if k==length(dates)
+        % Add legend
+        if i==length(dates)
             legend({'183','11990','KV'},'Location',[0.46 0.25 0.05 0.07])
         end
-
+        
+        % Make pretty
         finetunefigures
         set(gca,'YLim',[-0.5 2.5],'YTick',[0 1 2])
         xlabel('Time (UTC)')
         title(dates{i})
         setFontSize(gcf,14)
         datetick('x','HH')
-
+        
+        % Clear variables
         clear tBah t
 
-        k = k+1;
     end
-
+    
+    % Add comment for numbers
     th = annotation('textbox',[0.6,0.1,0.1,0.1],...
             'String',{'0: ok';'1: error';'2: saw tooth'},'Fontsize',14,...
             'EdgeColor','none');
-
-    export_fig([getPathPrefix 'NANA_campaignData/figures/radiometerErrorsAssessment' campaign],'-pdf')
+    
+    % Save figure
+    export_fig([figurepath '/radiometerErrorsAssessment' campaign],'-pdf')
 
     % Percentage of saw tooth pattern
     p2 = cell2mat(cellfun(@(x) round(sum(x==2)./numel(x).*100,3),e,'UniformOutput',false));
     % Percentage of errors
     p1 = cell2mat(cellfun(@(x) round(sum(x==1)./numel(x).*100,3),e,'UniformOutput',false));
 
-    save([getPathPrefix 'NANA_campaignData/mat/radiometerErrorAssessment_' campaign])
+    % Save data
+    save([basefolder 'mat/radiometerErrorAssessment_' campaign])
 else
-    load([getPathPrefix 'NANA_campaignData/mat/radiometerErrorAssessment_' campaign])
+    % Load data
+    load([basefolder 'mat/radiometerErrorAssessment_' campaign], ...
+        'p1', 'p2')
 end
 
 
-if man_vals && strcmp(campaign,'NAWDEX')
-    %% Manually calculated error percentages
-    % columns 1: 183; 2:119/90; 3: KV
-    p1 = zeros(13,3);
-    p1(3,1) = 8.7;
-    p1(4,:) = [0.3 0.5 0.3];
-    p1(7,1) = 0.2;
-    p1(9,1) = 27;
-    p1(10,1) = 67;
-    p1(12,1) = 20;
-    p1(13,1) = 21;
 
-    % Saw tooth only 183
-    p2 = zeros(13,1);
-    p2(9) = 6;
-    p2(11) = 9;
+%% Plot all in one
+
+if overview
+    % Greate labels for all flights
+    datelabels = [repmat('RF',length(dates),1) num2str((1:length(dates))','%02d') ...
+                    repmat(', ',length(dates),1) ...
+                    datestr(datenum(dates,'yyyymmdd'),'dd.mm.')];
+
+    % New figure
+    figure
+    % Set size and position
+    set(gcf,'Position',[23 337 1377 733])
+
+    % Define face colors
+    facecolors = [ 53, 151, 143;
+                  183, 187, 194; 
+                   79, 129, 189];
+
+    % Loop all radiometers
+    for i=1:length(radiometerStrings)
+
+        % Tight plot of subfigures
+        subtightplot(1,3,i,[0.01,0.02],0.1,0.08)
+        % Plot horizontal bars
+        bh = barh(1:length(dates),[p2(:,i) p1(:,i) 100-p2(:,i)-p1(:,i)],'stacked');
+
+        % Loop error types
+        for j=1:3
+            set(bh(j),'FaceColor',facecolors(j,:)./255,'EdgeColor',[1 1 1])
+        end
+
+        % Add labels to left figure
+        if i==1
+            set(gca,'YTickLabel',datelabels)
+        else
+            set(gca,'YTickLabel',[])
+        end
+        % Make pretty
+        finetunefigures
+        setFontSize(gcf,14)
+        grid off
+        set(gca,'TickLength',[ 0 0 ])
+        set(gca,'YDir','reverse')
+        set(gca,'YLim',[0.5 length(dates)+0.5])
+        xlabel('(%)')
+
+        % Add title
+        th = title(radiometerStrings(i));
+
+        % 
+        ax1 = gca;
+        % Create new axes at position of first axes
+        ax2 = axes('Position', get(ax1, 'Position'),'Color','none');
+        % No ticks and white lines to remove axes lines from first axes
+        set(ax2,'XTick',[],'YTick',[],'XColor','w','YColor','w','box','on','layer','top')
+
+        % Add legend to first plot
+        if i==1
+            % Legend
+            lh = legend(bh,'saw tooth','errors','data');
+            % Change font size
+            lh.FontSize = 14;
+        end
+
+    end
+
+    % Save figure as pdf and png
+    export_fig([figurepath 'radiometerAllErrorAssessment_' campaign],'-pdf')
+    export_fig([figurepath 'radiometerAllErrorAssessment_' campaign],'-png','-r600')
 end
-
-%% Plot 183
-
-datelabels = [repmat('RF',length(dates),1) num2str([1:length(dates)]','%02d') repmat(', ',length(dates),1) ...
-                datestr(datenum(dates,'yyyymmdd'),'dd.mm.')];
-
-figure
-set(gcf,'Position',[-772 296 656 721])
-bh = barh(1:length(dates),[p1(:,1) p2(:,1) 100-p2(:,1)-p1(:,1)],'stacked');
-
-set(bh(3),'FaceColor',[79, 129, 189]./255,'EdgeColor',[1 1 1]) % ok
-set(bh(1),'FaceColor',[183, 187, 194]./255,'EdgeColor',[1 1 1]) % error
-set(bh(2),'FaceColor',[53, 151, 143]./255,'EdgeColor',[1 1 1]) % sawtooth
-set(gca,'YTickLabel',datelabels)
-finetunefigures
-setFontSize(gcf,14)
-grid off
-set(gca,'TickLength',[ 0 0 ])
-set(gca,'YDir','reverse')
-set(gca,'YLim',[0.5 length(dates)+0.5])
-xlabel('(%)')
-% set(gca,'XLim',[-2 100])
-
-
-ax1 = gca;
-ax2 = axes('Position', get(ax1, 'Position'),'Color','none');
-set(ax2,'XTick',[],'YTick',[],'XColor','w','YColor','w','box','on','layer','top')
-
-if strcmp(campaign,'NAWDEX')
-    lh = legend(bh,'no data','saw tooth','data');
-else
-    lh = legend(bh,'errors','saw tooth','data');
-end
-set(lh,'Position',get(lh,'Position')+[0 0.07 0 0],...
-       'EdgeColor','none','FontSize',14)
-export_fig([getPathPrefix 'NANA_campaignData/figures/radiometer183ErrorAssessment_' campaign],'-pdf')
-export_fig([getPathPrefix 'NANA_campaignData/figures/radiometer183ErrorAssessment_' campaign],'-png','-r600')
-
-%% Plot 119/90
-
-% datelabels = [repmat('RF',10,1) num2str([1:10]','%02d') repmat(', ',10,1) ...
-%                 datestr(datenum(dates,'yyyymmdd'),'dd.mm.')];
-
-figure
-set(gcf,'Position',[-1438 296 656 721])
-bh = barh(1:length(dates),[p1(:,2) 100-p1(:,2)],'stacked');
-
-set(bh(2),'FaceColor',[79, 129, 189]./255,'EdgeColor',[1 1 1])
-set(bh(1),'FaceColor',[183, 187, 194]./255,'EdgeColor',[1 1 1])
-% set(bh(3),'FaceColor',[53, 151, 143]./255,'EdgeColor',[1 1 1])
-set(gca,'YTickLabel',datelabels)
-finetunefigures
-setFontSize(gcf,14)
-grid off
-set(gca,'TickLength',[ 0 0 ])
-set(gca,'YDir','reverse')
-set(gca,'YLim',[0.5 length(dates)+0.5])
-xlabel('(%)')
-% set(gca,'XLim',[-2 100])
-
-
-ax1 = gca;
-ax2 = axes('Position', get(ax1, 'Position'),'Color','none');
-set(ax2,'XTick',[],'YTick',[],'XColor','w','YColor','w','box','on','layer','top')
-
-
-if strcmp(campaign,'NAWDEX')
-    lh = legend(bh,'no data','data');
-else
-    lh = legend(bh,'errors','data');
-end
-set(lh,'Position',get(lh,'Position')+[0 0.05 0 0],...
-       'EdgeColor','none','FontSize',14)
-export_fig([getPathPrefix 'NANA_campaignData/figures/radiometer11990ErrorAssessment_' campaign],'-pdf')
-export_fig([getPathPrefix 'NANA_campaignData/figures/radiometer11990ErrorAssessment_' campaign],'-png','-r600')
-
-%% KV
-% 
-% datelabels = [repmat('RF',10,1) num2str([1:10]','%02d') repmat(', ',10,1) ...
-%                 datestr(datenum(dates,'yyyymmdd'),'dd.mm.')];
-
-figure
-set(gcf,'Position',[-1889 295 656 721])
-bh = barh(1:length(dates),[p1(:,3) 100-p1(:,3)],'stacked');
-
-set(bh(2),'FaceColor',[79, 129, 189]./255,'EdgeColor',[1 1 1])
-set(bh(1),'FaceColor',[183, 187, 194]./255,'EdgeColor',[1 1 1])
-% set(bh(3),'FaceColor',[53, 151, 143]./255,'EdgeColor',[1 1 1])
-set(gca,'YTickLabel',datelabels)
-finetunefigures
-setFontSize(gcf,14)
-grid off
-set(gca,'TickLength',[ 0 0 ])
-set(gca,'YDir','reverse')
-set(gca,'YLim',[0.5 length(dates)+0.5])
-xlabel('(%)')
-% set(gca,'XLim',[-2 100])
-
-
-ax1 = gca;
-ax2 = axes('Position', get(ax1, 'Position'),'Color','none');
-set(ax2,'XTick',[],'YTick',[],'XColor','w','YColor','w','box','on','layer','top')
-
-if strcmp(campaign,'NAWDEX')
-    lh = legend(bh,'no data','data');
-else
-    lh = legend(bh,'errors','data');
-end
-set(lh,'Position',get(lh,'Position')+[0 0.05 0 0],...
-       'EdgeColor','none','FontSize',14)
-export_fig([getPathPrefix 'NANA_campaignData/figures/radiometerKVErrorAssessment_' campaign],'-pdf')
-export_fig([getPathPrefix 'NANA_campaignData/figures/radiometerKVErrorAssessment_' campaign],'-png','-r600')
-
-%% All in one
-
-% 183
-% datelabels = [repmat('RF',10,1) num2str([1:10]','%02d') repmat(', ',10,1) ...
-%                 datestr(datenum(dates,'yyyymmdd'),'dd.mm.')];
-
-figure
-set(gcf,'Position',[23 337 1893 733])
-
-subtightplot(1,3,1,[0.01,0.02],0.1,0.08)
-bh = barh(1:length(dates),[p2(:,1) p1(:,1) 100-p2(:,1)-p1(:,1)],'stacked');
-
-set(bh(3),'FaceColor',[79, 129, 189]./255,'EdgeColor',[1 1 1])
-set(bh(2),'FaceColor',[183, 187, 194]./255,'EdgeColor',[1 1 1])
-set(bh(1),'FaceColor',[53, 151, 143]./255,'EdgeColor',[1 1 1])
-set(gca,'YTickLabel',datelabels)
-finetunefigures
-setFontSize(gcf,14)
-grid off
-set(gca,'TickLength',[ 0 0 ])
-set(gca,'YDir','reverse')
-set(gca,'YLim',[0.5 length(dates)+0.5])
-xlabel('(%)')
-% set(gca,'XLim',[-2 100])
-th = title('183');
-set(th,'Position',get(th,'Position')+[-20 0 0])
-
-
-ax1 = gca;
-ax2 = axes('Position', get(ax1, 'Position'),'Color','none');
-set(ax2,'XTick',[],'YTick',[],'XColor','w','YColor','w','box','on','layer','top')
-
-if strcmp(campaign,'NAWDEX')
-    lh = legend(bh,'no data','saw tooth','data');
-else
-    lh = legend(bh,'errors','saw tooth','data');
-end
-set(lh,'Position',get(lh,'Position')+[0 0.07 0 0],...
-       'EdgeColor','none','FontSize',14)
-
-   %%
-% Plot 119/90
-
-subtightplot(1,3,2,[0.01,0.02],0.1,0.08)
-bh = barh(1:length(dates),[p1(:,2) 100-p1(:,2)],'stacked');
-
-set(bh(2),'FaceColor',[79, 129, 189]./255,'EdgeColor',[1 1 1])
-set(bh(1),'FaceColor',[183, 187, 194]./255,'EdgeColor',[1 1 1])
-% set(bh(3),'FaceColor',[53, 151, 143]./255,'EdgeColor',[1 1 1])
-set(gca,'YTickLabel',[])
-finetunefigures
-setFontSize(gcf,14)
-grid off
-set(gca,'TickLength',[ 0 0 ])
-set(gca,'YDir','reverse')
-set(gca,'YLim',[0.5 length(dates)+0.5])
-xlabel('(%)')
-% set(gca,'XLim',[-2 100])
-th = title('119/90');
-set(th,'Position',get(th,'Position')+[-20 0 0])
-
-
-ax1 = gca;
-ax2 = axes('Position', get(ax1, 'Position'),'Color','none');
-set(ax2,'XTick',[],'YTick',[],'XColor','w','YColor','w','box','on','layer','top')
-
-if strcmp(campaign,'NAWDEX')
-    lh = legend(bh,'no data','data');
-else
-    lh = legend(bh,'errors','data');
-end
-set(lh,'Position',get(lh,'Position')+[0 0.05 0 0],...
-       'EdgeColor','none','FontSize',14)
-
-   %%
-% KV
-
-subtightplot(1,3,3,[0.01,0.02],0.1,0.08)
-bh = barh(1:length(dates),[p1(:,3) 100-p1(:,3)],'stacked');
-
-set(bh(2),'FaceColor',[79, 129, 189]./255,'EdgeColor',[1 1 1])
-set(bh(1),'FaceColor',[183, 187, 194]./255,'EdgeColor',[1 1 1])
-% set(bh(3),'FaceColor',[53, 151, 143]./255,'EdgeColor',[1 1 1])
-set(gca,'YTickLabel',[])
-finetunefigures
-setFontSize(gcf,14)
-grid off
-set(gca,'TickLength',[ 0 0 ])
-set(gca,'YDir','reverse')
-set(gca,'YLim',[0.5 length(dates)+0.5])
-xlabel('(%)')
-% set(gca,'XLim',[-2 100])
-th = title('KV');
-set(th,'Position',get(th,'Position')+[-20 0 0])
-
-
-ax1 = gca;
-ax2 = axes('Position', get(ax1, 'Position'),'Color','none');
-set(ax2,'XTick',[],'YTick',[],'XColor','w','YColor','w','box','on','layer','top')
-
-if strcmp(campaign,'NAWDEX')
-    lh = legend(bh,'no data','data');
-else
-    lh = legend(bh,'errors','data');
-end
-set(lh,'Position',get(lh,'Position')+[0 0.05 0 0],...
-       'EdgeColor','none','FontSize',14)
-   
-   
-export_fig([getPathPrefix 'NANA_campaignData/figures/radiometerAllErrorAssessment_' campaign],'-pdf')
-export_fig([getPathPrefix 'NANA_campaignData/figures/radiometerAllErrorAssessment_' campaign],'-png','-r600')
 
 end
 
+% Create array from error intervals
 function index = indexFromError(errorCell)
 
+% Preallocate
 index = cell(1,length(errorCell));
+% Loop all intervals
 for k=1:length(errorCell)
+    % Create array
     index{k} = errorCell{k}(1):errorCell{k}(end);
 end
+% Concatenate arrays
 index = cell2mat(index);
 
 end
+
+
+
 %------------- END OF CODE --------------
