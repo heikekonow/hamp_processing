@@ -41,7 +41,6 @@
 function Files = listFiles(searchstring,varargin)
 
 %------------- BEGIN CODE --------------
-
 filescells = cell(size(searchstring,1),1);
 for i=1:size(searchstring,1)
     % List every file that complies to searchstring in structure
@@ -53,6 +52,9 @@ for i=1:size(searchstring,1)
 end
 
 Files = vertcat(filescells{:});
+
+% Remove entries beginning with dot
+Files(strncmp(Files, '.', 1)) = [];
 
 % If extra options are given
 if nargin>1
@@ -67,10 +69,10 @@ if nargin>1
         % Combine path and file names
         Files = cellstr(horzcat(char(path),char(Files)));
     end
-    
+
     % If latest version is called
-    if any(strcmp(varargin,'last')) || any(strcmp(varargin,'latest')) 
-        
+    if any(strcmp(varargin,'last')) || any(strcmp(varargin,'latest'))
+
         % Preallocate
         v = zeros(length(Files), 2);
         % Loop all files
@@ -78,24 +80,24 @@ if nargin>1
             % Analyze file names for version string
             ind_startVersion = regexp(Files{i}, '_v')+2;
             ind_fileExtension = regexp(Files{i}(ind_startVersion:end), '.nc');
-            
+
             % Get short file name
             filename_short = Files{i}(ind_startVersion:ind_startVersion+ind_fileExtension-2);
-            
+
             % Find index of dots
             ind_dots = regexp(filename_short, '[.]');
             % If dots were found
-            if ~isempty(ind_dots) 
+            if ~isempty(ind_dots)
                 % Analyse file version and subversion
                 versionstring = filename_short(1:ind_dots(1)-1);
                 subversionstring = filename_short(ind_dots(1)+1:end);
-                
+
                 v(i,:) = [str2double(versionstring) str2double(subversionstring)];
             end
         end
         % Convert version to float
         v = v(:,1) + v(:,2).* .01;
-        
+
         % If versions found are larger than zero
         if sum(sum(v))>0
             % Get index of highest version number
@@ -106,6 +108,10 @@ if nargin>1
             % Otherwise take last file
             Files = Files{end};
         end
+    end
+    
+    if any(strcmp(varargin, 'mat'))
+        Files = [Files{:}];
     end
 end
 
