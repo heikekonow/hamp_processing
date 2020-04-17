@@ -32,20 +32,8 @@
 %------------- BEGIN CODE --------------
 %%
 
-% General housekeeping
-% clear; close all
+function assess_radar_data(figures, calc, campaign, minalt)
 
-%% Set parameters
-% If figures should be produced
-figures = false;
-% If error time steps should be calculated from indices
-calc = false;
-
-% Set campaign to analyse
-campaign = 'EUREC4A';
-
-% Set minimum altitude for observations
-minalt = 4000;
 
 %% Get dates and folder paths
 

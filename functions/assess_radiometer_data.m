@@ -32,24 +32,10 @@
 %------------- BEGIN CODE --------------
 
 
-function assess_radiometer_data
+function assess_radiometer_data(figures, calc, overview, campaign)
 
 % Housekeeping 
 close all
-
-%% Set parameters
-% Set if figures should be produced
-figures = false;
-% Set if error time steps should be calculated from indices
-calc = false;
-% Set if overview figure should be produced
-overview = true;
-
-
-% Set campaign to analyse
-% campaign = 'NARVAL-II';
-campaign = 'EUREC4A';
-
 
 %% Get dates and folder paths
 
@@ -109,6 +95,7 @@ if figures
                 finetunefigures
                 setFontSize(gcf, 18);
                 
+                % Save figures
 %                 export_fig([figurepath dates{i} '_' radiometerStrings{j}], '-png')
             end
         end

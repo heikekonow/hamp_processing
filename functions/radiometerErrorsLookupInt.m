@@ -1,6 +1,8 @@
 % These values have been estimated by eye using assess_radiometer_data.m
 % Numbers represent indices in raw measurement data and are not yet
 % converted to times
+%
+% Note individual indices or intervals in the form [ii jj]
 
 %% Errors
 
