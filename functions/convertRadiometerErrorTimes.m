@@ -28,7 +28,7 @@
 function convertRadiometerErrorTimes(campaign)
 
 % Load error indices
-[errors, sawtooth] = radiometerErrorsLookupInt;
+[errors, sawtooth] = radiometerErrorsLookup;
 
 % Radiometer modules
 instr = {'183','11990','KV'};

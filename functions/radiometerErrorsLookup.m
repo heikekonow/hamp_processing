@@ -6,7 +6,7 @@
 
 %% Errors
 
-function [errors, sawtooth] = radiometerErrorsLookupInt
+function [errors, sawtooth] = radiometerErrorsLookup
 
 %183
 errors{1,1} = {...

@@ -5,7 +5,7 @@
 %       Set figures = true if you want to look through figures from 
 %           individual flights and note error and saw tooth occurrences.
 %           Note error and saw tooth interval indices in file
-%           'radiometerErrorsLookupInt.m'
+%           'radiometerErrorsLookup.m'
 %       Set calc = true if you want to calculate error percentages.
 %       Set overview = true if you want to produce overview figure.
 %
@@ -119,7 +119,7 @@ end
 %% Convert indices to times
 if calc
     % Load error indices
-    [errors, sawtooth] = radiometerErrorsLookupInt;
+    [errors, sawtooth] = radiometerErrorsLookup;
     
     % Preallocate arrays
     errorcode = cell(10,3);
