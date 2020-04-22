@@ -176,4 +176,4 @@ end
 checkandcreate(basefolder, 'aux')
 
 % Save flags to file
-save([basefolder 'aux/errorFlag.mat'],'errorFlag','sawtoothFlag','date','instr')
+save([basefolder 'aux/errorFlagRadiometer.mat'],'errorFlag','sawtoothFlag','date','instr')

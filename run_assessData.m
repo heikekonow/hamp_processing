@@ -65,4 +65,10 @@ assess_radiometer_data(figures, calc, overview, campaign)
 % This only works if you have analysed the errors in the steps above and
 % noted the intervals in radiometerErrorsLookup.m and radarErrorsLookup.m 
 
+% Convert to flag for radiometer
+convertRadiometerErrorTimes(campaign)
+
+% convert to flag for radar
+convertRadarErrorTimes(campaign)
+
 %------------- END OF CODE --------------
