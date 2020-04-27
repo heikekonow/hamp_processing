@@ -119,7 +119,7 @@ if calc
         indDate = strcmp(errors(:,1), dates{i});
         
         % If files were found
-        if cellfun(@isempty, files, 'uni', false)
+        if ~isempty(files)
             
             % Output
             disp(dates{i})
@@ -149,15 +149,8 @@ if calc
             
             % Create error array
             errorInd{i} = zeros(1,length(tRadar{i}));
-            
-            % If errors were found
-            if ~cellfun(@isempty,errors{indDate,2})
-                % Create array from error intervals
-                index = indexFromError(errors{indDate,2});
-            
-                % Set error array to one for error time steps
-                errorInd{i}(index) = 1;
-            end
+            % Set error array to one for error time steps
+            errorInd{i}(errors{indDate,2}) = 1;
             
             % Set error array to three for times below minimum altitude
             errorInd{i}(1:find(tRadar{i}<tH_minalt(1),1,'last')) = 3;
@@ -241,23 +234,7 @@ checkandcreate(basefolder, 'figures')
 % Save figure
 export_fig([basefolder 'figures/radarErrorAssessment_' campaign],'-pdf')
 
-end
 
-
-% Create array from error intervals
-function index = indexFromError(errorCell)
-
-% Preallocate
-index = cell(1,length(errorCell));
-% Loop all intervals
-for k=1:length(errorCell)
-    % Create array
-    index{k} = errorCell{k}(1):errorCell{k}(end);
-end
-% Concatenate arrays
-index = cell2mat(index);
-
-end
 
 %------------- END OF CODE --------------
 
