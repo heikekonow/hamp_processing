@@ -5,28 +5,20 @@
 %       Set figures = true if you want to look through figures from 
 %           individual flights and note error and saw tooth occurrences.
 %           Note error and saw tooth interval indices in file
-%           'radiometerErrorsLookup.m'
+%           'radiometerErrorsLookupInt.m'
 %       Set calc = true if you want to calculate error percentages.
 %       Set overview = true if you want to produce overview figure.
 %
-%   Syntax:  assess_radiometer_data(figures, calc, overview, campaign)
+%   Syntax:  [output1,output2] = function_name(input1,input2,input3)
 %
 %   Inputs:
-%       figures  - set to true to create figures to identify errors
-%       calc     - set to true if error time steps should be calculated from indices
-%       overview - set to true if overview figure should be produced
-%       campaign - campaign name as string
+%       none
 %
 %   Outputs:
 %       none
 %
 %   Example: 
-%       figures = false;
-%       calc = false;
-%       overview = true;
-%       campaign = 'EUREC4A';
-%
-%       assess_radiometer_data(figures, calc, overview, campaign)
+%       
 %
 %
 %   See also: 
@@ -51,6 +43,7 @@ close all
 dates = getCampaignDates(campaign);
 % Set path to data
 basefolder = [getPathPrefix getCampaignFolder(dates{1})];
+% basefolder = '/Users/heike/Documents/NANA_campaignData/';
 pathRadiometer = [basefolder 'radiometer/'];
 pathBahamas = [basefolder 'bahamas/'];
 
@@ -119,7 +112,7 @@ end
 %% Convert indices to times
 if calc
     % Load error indices
-    [errors, sawtooth] = radiometerErrorsLookup;
+    [errors, sawtooth] = radiometerErrorsLookupInt;
     
     % Preallocate arrays
     errorcode = cell(10,3);

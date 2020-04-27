@@ -110,7 +110,7 @@ if nargin>1
         end
     end
     
-    if any(strcmp(varargin, 'mat')) && iscell(Files)
+    if any(strcmp(varargin, 'mat'))
         Files = [Files{:}];
     end
 end
