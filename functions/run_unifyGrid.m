@@ -7,40 +7,21 @@ unify = 1;
 % Save data to netcdf
 savedata = 1;
 % Redo unified bahamas data, otherwise only load
-redoBahamas = 1;
+redoBahamas = 0;
 
 %% Set version information
 version = 0;
 subversion = 4;
 
-% %% Specify time frame for data conversion
-% % Start date
-% t1 = '20190516';  
-% % End date
-% t2 = '20190517';
-% 
-% % Get flight dates to use in this program
-% flightdates_use = specifyDatesToUse(t1,t2);
 
 % Load information on flight dates and campaigns
 [NARVALdates, NARVALdatenum] = flightDates;
 
 t1 = flightdates_use{1};
 
-% Set path to root folder
-if str2num(t1)<20160101
-    pathtofolder = [getPathPrefix 'NARVAL-I_campaignData/'];
-elseif str2num(t1)<20190101
-    pathtofolder = [getPathPrefix 'NANA_campaignData/'];
-else
-    pathtofolder = [getPathPrefix 'EUREC4A_campaignData/'];
-end
+% Set path to base folder
+pathtofolder = [getPathPrefix getCampaignFolder(t1)];
 
-% %% Check if output folders exist, otherwise create
-% 
-% checkandcreate(pathtofolder, 'all_mat')
-% checkandcreate(pathtofolder, 'all_nc')
-% checkandcreate(pathtofolder, 'radar_mira')
 
 %% Specify variables to consider
 
@@ -79,20 +60,19 @@ if unify
             load(filepath{end},'uniTime','uniHeight')
         end
 
+        
         % Radiometer
         unifyGrid_radiometer(pathtofolder,flightdates_use{i},uniTime,radiometerVars)
+        
+        % Radar
+        unifyGrid_radar(pathtofolder,flightdates_use{i},uniHeight,uniTime,radarVars)
 
         % Create empty variable according to unified grid
         uniData = nan(length(uniHeight),length(uniTime));
-% 
-        % Radar
-        unifyGrid_radar(pathtofolder,flightdates_use{i},uniHeight,uniTime,radarVars)
-% 
+        
         % Dropsondes
         unifyGrid_dropsondes(pathtofolder,flightdates_use{i},uniHeight,uniTime,uniData,sondeVars)
-% 
-%         % Lidar
-%         unifyGrid_lidar(pathtofolder,flightdates_use{i},uniHeight,uniTime,uniData,lidarVars)
+        
     end
 end
 %% Prepare infos for global attribute
