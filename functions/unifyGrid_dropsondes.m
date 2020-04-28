@@ -58,6 +58,9 @@ for j=1:length(filename)
     sondeHeight(nanIndex{j}) = [];
     sondeTime(nanIndex{j}) = [];
     
+    % Round time to seconds to avoid numerical deviations
+    sondeTime = dateround(sondeTime, 'second');
+    
     % If data should be interpolated, save height data to variable
     if interpolate
         sondeHeightForInterp{j} = sondeHeight;

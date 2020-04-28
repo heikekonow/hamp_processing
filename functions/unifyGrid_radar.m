@@ -77,7 +77,12 @@ if ~isempty(filename)
             indHeight = get_indHeight(uniHeight,radarHeight);
             % Get index for time information
             indTime = get_indTime(uniTime,radarTime);
+            
+            % Round time to seconds to avoid numerical deviations
+            radarTime = dateround(radarTime', 'second');
         end
+        
+        
 
         % Combine data from different files
         eval(['uni' radarVars{i} ' = transferData(uniData,data,indHeight,indTime);'])
@@ -91,41 +96,7 @@ if ~isempty(filename)
         extra_info(end+1,:) = {radarVars{i},unitsTemp,longNameTemp,['uni' radarVars{i}]};
     end
 
-    % If test figures should be plotted
-%     if testPlots
-%         % Read data
-%         dbz = ncread(filepath,'dBZg');
-% 
-%         % plot test figure
-%         figure
-%         set(gcf,'Position',[1922 181 1358 938])
-%         subplot(2,1,1)
-%         imagesc(radarTime,radarHeight,dbz)
-%         addWhiteToJet
-%         set(gca,'ydir','normal')
-%         xlabel('Time')
-%         ylabel('Height')
-%         title('dBZ')
-%         xlim([datenum(flightdate,'yyyymmdd')+datenum([0 0 0 7 0 0]) datenum(flightdate,'yyyymmdd')+datenum([0 0 0 23 0 0])])
-%         ylim([0 8000])
-%         datetick('x','KeepLimits')
-%         finetunefigures
-%         box on
-%         subplot(2,1,2)
-%         imagesc(uniTime,uniHeight,unidBZg)
-%         addWhiteToJet
-%         finetunefigures
-%         set(gca,'ydir','normal')
-%         xlabel('Time')
-%         ylabel('Height')
-%         title('Unified dBZ')
-%         xlim([datenum(flightdate,'yyyymmdd')+datenum([0 0 0 7 0 0]) datenum(flightdate,'yyyymmdd')+datenum([0 0 0 23 0 0])])
-%         ylim([0 8000])
-%         datetick('x','KeepLimits')
-%         box on
-% 
-%         clear dbz
-%     end
+
 end
 %%
 extra_info(end+1,:) = {'flightdate','','Date of flight','flightdate'};
