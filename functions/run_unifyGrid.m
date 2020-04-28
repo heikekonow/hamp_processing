@@ -1,7 +1,9 @@
 function run_unifyGrid(flightdates_use, comment, contact)
 
 tic 
-%% Switches
+%% Switches 
+% usually all set to 1, but can be useful for debugging
+%
 % Unify data onto common grid
 unify = 1;
 % Save data to netcdf
@@ -59,7 +61,9 @@ if unify
             filepath = listFiles([pathtofolder 'all_mat/*bahamas' flightdates_use{i} '*'],'full');
             load(filepath{end},'uniTime','uniHeight')
         end
-
+        
+        % Round time to seconds to avoid numerical deviations 
+        uniTime = dateround(uniTime', 'second');
         
         % Radiometer
         unifyGrid_radiometer(pathtofolder,flightdates_use{i},uniTime,radiometerVars)
