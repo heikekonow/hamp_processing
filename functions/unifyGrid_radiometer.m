@@ -82,6 +82,9 @@ for i=1:length(radiometerVars)
         % Convert to serial date number
         radiometerTime = time2001_2sdn(radiometerTime);
         
+        % Round time to seconds to avoid numerical deviations
+        radiometerTime = dateround(radiometerTime', 'second');
+        
         % Remove times in the future and past
         ind_off = find(radiometerTime > datenum(flightdate,'yyyymmdd')+2 | ...
                         radiometerTime < datenum(flightdate,'yyyymmdd')-2);
