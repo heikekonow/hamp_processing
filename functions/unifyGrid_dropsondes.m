@@ -83,6 +83,7 @@ if ~isempty(filename)
     % Preallocate arrays
     uniDataDropsonde = uniData;
     uniDataDropsonde_inst = uniData;
+    interpolateMat = zeros(size(uniData));
     
     % Loop dropsonde variables
     for i=1:length(sondeVars)
@@ -114,14 +115,21 @@ if ~isempty(filename)
             if interpolate
                 % Use function as before, but keep in mind that with
                 % profiles, height is "time"
-%                 if j==6 && i==2 %&& j==24
-%                     disp(num2str(j))
-%                 end
                 if sum(isnan(data{j})) <= length(data{j})-2
-                     [~,index]=unique(sondeHeightForInterp{j});
-                     index=setdiff(1:length(data{j}),index);
-                     data{j}(index)=NaN;
-                     dataInt{j} = interpolateData(sondeHeightForInterp{j},data{j},10);
+                    
+                    % Get indices of dropsonde height values
+                     [~, index, ~] = unique(sondeHeightForInterp{j});
+                     
+                     % Look for missing dropsonde index values in
+                     % comparison to general height array
+                     index = setdiff(1:length(data{j}),index);
+                     
+                     % Set data at missing heights to nan
+                     data{j}(index) = NaN;
+                     
+                     % Interplate profile data
+                     [dataInt{j}, interpolate_flag{j}] = ...
+                         interpolateData(sondeHeightForInterp{j},data{j},10);
                      data{j} = dataInt{j};
                 end
             end
@@ -139,9 +147,15 @@ if ~isempty(filename)
             for k=1:length(indSonde_inst{j})
                 if ~isnan(indHeightUni_inst{j}(k)) && ~isnan(indSonde_inst{j}(k))
                     uniDataDropsonde_inst(indHeightUni_inst{j}(k),indTimeUni_inst{j}) = data{j}(indSonde_inst{j}(k));
+                    
+                    interpolateMat(indHeightUni_inst{j}(k),indTimeUni_inst{j}) = ...
+                        interpolate_flag{j}(indSonde_inst{j}(k));
                 end
             end
+            
+            % Check if entire sonde profile is filled with nans
             if sum(isnan(uniDataDropsonde_inst(:,indTimeUni_inst{j})))==length(uniHeight)
+                % Add current sonde number to nan sonde index
                 nanSondeNumber(j) = j;
             end
         end
@@ -163,9 +177,13 @@ if ~isempty(filename)
         extra_info(end+1,:) = {sondeVars{i},unitsTemp,longNameTemp,['uniSonde' sondeVars{i}]};
         extra_info(end+1,:) = {[sondeVars{i} '_inst'],unitsTemp,longNameTemp_inst,['uniSonde' sondeVars{i} '_inst']};
         extra_info(end+1,:) = {[sondeVars{i} '_sondes'],unitsTemp,longNameTemp_sondes,['uniSonde' sondeVars{i} '_sondes']};
+        extra_info(end+1,:) = {[sondeVars{i} '_intFlag'],'',[longNameTemp '; interpolation flag'],['uniSonde' sondeVars{i} '_interpolateFlag']};
         
         % Reduce variable data to only sondes
         uniDataDropsonde_sondes = uniDataDropsonde_inst(:,...
+                sum(isnan(uniDataDropsonde_inst),1)~=length(uniHeight));
+            
+        uniDataDropsonde_flag = interpolateMat(:,...
                 sum(isnan(uniDataDropsonde_inst),1)~=length(uniHeight));
             
         % If sonde file with only nans exist, reproduce this
@@ -199,6 +217,7 @@ if ~isempty(filename)
         eval(['uniSonde' sondeVars{i} ' = uniDataDropsonde;'])
         eval(['uniSonde' sondeVars{i} '_inst = uniDataDropsonde_inst;'])
         eval(['uniSonde' sondeVars{i} '_sondes = uniDataDropsonde_sondes;'])
+        eval(['uniSonde' sondeVars{i} '_intFlag = uniDataDropsonde_flag;'])
         % Preallocate new arrays
         uniDataDropsonde = uniData;
         %%% Muss hier nicht auch die zweite Variable neu allociert werden??
