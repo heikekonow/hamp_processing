@@ -1,8 +1,51 @@
+%% unifyGrid_dropsondes
+%   unifyGrid_dropsondes - Transfer dropsonde data to uniform grid
+%   Read the data from original data files and do some quality checks
+%   (remove increasing height, remove spikes), interpolate data gaps. The
+%   checked data is then transfered to the uniform grid and some extra
+%   information is saved to be used later for netCDF file generation.
+%
+%   In general, three types of data are created (with rh as example):
+%       - uniSonderh:       a height time matrix with measurements filled at the
+%                           exact time/height point as they occured
+%       - uniSonderh_inst:  a height time matrix with measurements filled
+%                           the height they occured but with an assumed
+%                           instantaneous drop, i.e. entire profile with
+%                           only one time stamp)
+%       - uniSonderh_sondes:  a matrix with height/sonde_number dimensions;
+%                           all sondes on the uniform height grid but
+%                           directly in succession
+%
+%   In addition, an interpolation flag is added for each variable. This has
+%   the suffix _intFlag.
+%
+%   Syntax:  unifyGrid_dropsondes(pathtofolder,flightdate,uniHeight,uniTime,uniData,sondeVars)
+%
+%   Inputs:
+%       pathtofolder -  Path to base data folder
+%       flightdate -    string yyyymmdd for data to be converted
+%       uniHeigh -      array for uniform height grid
+%       uniTime -       array for uniform time grid
+%       uniData -       matrix with uniform time/height grid
+%       sondeVars -     list of dropsonde variable names to convert
+%
+%   Outputs:
+%       none; data is saved in [pathtofolder 'all_mat/uniData_dropsondes' flightdate '.mat']
+%
+%
+%   Author: Dr. Heike Konow
+%   Meteorological Institute, Hamburg University
+%   email address: heike.konow@uni-hamburg.de
+%   Website: http://www.mi.uni-hamburg.de/
+%   June 2017; Last revision: April 2020
+
+%------------- BEGIN CODE --------------
+
 function unifyGrid_dropsondes(pathtofolder,flightdate,uniHeight,uniTime,uniData,sondeVars)
 
 % For debugging: set testPlots to true to check interpolated and original
 % temperature profile from sonde number f
-testPlots = true;
+testPlots = false;
 f = 2;
 
 % No need to change this unless there are problems with interpolation
@@ -57,7 +100,7 @@ for j=1:length(filename)
     sondeHeightCpy = sondeHeight;
     sondeHeightCpy(nanIndex_tmp) = [];
     
-  
+    % Remove instances with height increase during drop
     sondeHeight = removeHeightIncrease(sondeHeight);
     
     % Find indices of nan entries
@@ -224,7 +267,7 @@ if ~isempty(filename)
     if testPlots
         
         % Call plotting function
-        plotFigure(f)
+        plotFigure(pathtofolder, f)
     end
     
     % Clear variables
@@ -304,3 +347,5 @@ function plotFigure(f)
         xlabel('T')
         finetunefigures
 end
+
+%------------- END OF CODE --------------
