@@ -117,6 +117,7 @@ if ~isempty(bahamasVars)
         % Replace missing value with nan
         data(data<-9000) = nan;
 
+        % If interpolate flag is set and there are gaps in data
         if interpolate && sum(isnan(data))>0
             if exist('bahamasTime10Hz','var')
                 timeInterp = bahamasTime10Hz;
@@ -125,10 +126,12 @@ if ~isempty(bahamasVars)
             end
             % Only interpolate data if not all are nan
             if sum(~isnan(data))>0
-                interpolated_data = interpolateData(timeInterp,data,3000);
+                [interpolated_data, interpolate_flag] = interpolateData(timeInterp,data,3000);
                 % Rename
                 data = interpolated_data;
             end
+        elseif interpolate
+            interpolate_flag = zeros(size(data));
         end
 
         % Read units and long name
@@ -138,11 +141,22 @@ if ~isempty(bahamasVars)
         longNameTemp_2d = [longNameTemp '; 2d data'];
         extra_info(end+1,:) = {trueNames{i},unitsTemp,longNameTemp_2d,['uniBahamas' trueNames{i}]};
 
-        % Transpose if necessary and error check
+        % Check if interpolated data is time series of same length as uniTime
         if size(data,1)==length(uniTime) && size(data,2)==1
+            % Transpose data
             data = data';
+            
+        % Else, check if a index variable for 1 Hz data exists
         elseif exist('ind1Hz','var')
+            % Convert data to 1 Hz
             data = data(ind1Hz);
+            
+            % If variable interpolate_flag exists, copy to 1 Hz
+            if exist('interpolate_flag', 'var')
+                interpolate_flag = interpolate_flag(ind1Hz);
+            end
+            
+        % Else, check if dimension sizes don't match
         elseif sum(size(data)==length(uniTime))==0
             error('Problem: Bahamas data dimensions don''t agree')
         end
@@ -153,13 +167,18 @@ if ~isempty(bahamasVars)
 
         % Test if only one value per time step is in variable
         if sum(sum(~isnan(tmp_data),1)<=1)==length(uniTime)
+            % Sum up over each column to generate 1d data
             tmp_data_1d = nansum(tmp_data,1);
+            % Collect info for variable
             extra_info(end+1,:) = {trueNames{i},unitsTemp,longNameTemp_1d,['uniBahamas' trueNames{i} '_1d']};
+            extra_info(end+1,:) = {[trueNames{i} '_intFlag'],'',[longNameTemp '; interpolation flag'],['uniBahamas' trueNames{i} '_interpolateFlag']};
+            % Rename data
             eval(['uniBahamas' trueNames{i} '_1d = tmp_data_1d;'])
+            eval(['uniBahamas' trueNames{i} '_interpolateFlag = interpolate_flag;'])
         else
             error(['Fehler: ' trueNames{i}])
         end
-        clear data tmp_data tmp_data_1d
+        clear data tmp_data tmp_data_1d interpolate_flag
     end
 end
 clear indTime indHeight bahamasTime10Hz
