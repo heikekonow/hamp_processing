@@ -163,6 +163,7 @@ if ~isempty(filename)
             if interpolate
                 % Use function as before, but keep in mind that with
                 % profiles, height is "time"
+                % Make sure that at least to non-nan values are in the data
                 if sum(isnan(data{j})) <= length(data{j})-2
                     
                     % Get indices of dropsonde height values
@@ -179,6 +180,8 @@ if ~isempty(filename)
                      [dataInt{j}, interpolate_flag{j}] = ...
                          interpolateData(sondeHeightForInterp{j},data{j},10);
                      data{j} = dataInt{j};
+                else
+                    interpolate_flag{j} = nan(size(data{j}));
                 end
             end
 
@@ -194,7 +197,8 @@ if ~isempty(filename)
             % of one dropsonde)
             for k=1:length(indSonde_inst{j})
                 if ~isnan(indHeightUni_inst{j}(k)) && ~isnan(indSonde_inst{j}(k))
-                    uniDataDropsonde_inst(indHeightUni_inst{j}(k),indTimeUni_inst{j}) = data{j}(indSonde_inst{j}(k));
+                    uniDataDropsonde_inst(indHeightUni_inst{j}(k),indTimeUni_inst{j}) = ...
+                        data{j}(indSonde_inst{j}(k));
                     
                     interpolateMat(indHeightUni_inst{j}(k),indTimeUni_inst{j}) = ...
                         interpolate_flag{j}(indSonde_inst{j}(k));
@@ -227,7 +231,7 @@ if ~isempty(filename)
         extra_info(end+1,:) = {sondeVars{i},unitsTemp,longNameTemp,['uniSonde' sondeVars{i}]};
         extra_info(end+1,:) = {[sondeVars{i} '_inst'],unitsTemp,longNameTemp_inst,['uniSonde' sondeVars{i} '_inst']};
         extra_info(end+1,:) = {[sondeVars{i} '_sondes'],unitsTemp,longNameTemp_sondes,['uniSonde' sondeVars{i} '_sondes']};
-        extra_info(end+1,:) = {[sondeVars{i} '_intFlag'],'',[longNameTemp '; interpolation flag'],['uniSonde' sondeVars{i} '_interpolateFlag']};
+        extra_info(end+1,:) = {[sondeVars{i} '_intFlag'],'',[longNameTemp '; interpolation flag'],['uniSonde' sondeVars{i} '_intFlag']};
         
         % Reduce variable data to only sondes
         uniDataDropsonde_sondes = uniDataDropsonde_inst(:,...
@@ -240,13 +244,16 @@ if ~isempty(filename)
         if size(uniDataDropsonde_sondes,2)<length(filename)
             nanSondeNumber = nanSondeNumber(nanSondeNumber~=0);
             tmp = nan(length(uniHeight),length(filename));
-            index=setdiff(1:length(filename),nanSondeNumber);
-            tmp(:,index)=uniDataDropsonde_sondes(:,:);
+            tmp2 = nan(length(uniHeight),length(filename));
+            index = setdiff(1:length(filename),nanSondeNumber);
+            tmp(:,index) = uniDataDropsonde_sondes(:,:);
+            tmp2(:,index) = uniDataDropsonde_flag(:,:);
             
-            % Fill with empty profile
-            clear uniDataDropsonde_sondes
+            % Add empty profile
+            clear uniDataDropsonde_sondes uniDataDropsonde_flag
             uniDataDropsonde_sondes = tmp;
-            clear tmp
+            uniDataDropsonde_flag = tmp2;
+            clear tmp tmp2
         end
             
         % Rename variables
@@ -288,7 +295,7 @@ disp(' ')
 extra_info(1,:) = [];
 
 % Clear universal arrays
-clear uniData uniDataDropsonde uniDataDropsonde_inst unitsTemp uniDataDropsonde_sondes 
+clear uniData uniDataDropsonde uniDataDropsonde_inst unitsTemp uniDataDropsonde_sondes uniDataDropsonde_flag
 
 % Save data to file
 save(outfile,'uni*','flightdate','extra_info')
