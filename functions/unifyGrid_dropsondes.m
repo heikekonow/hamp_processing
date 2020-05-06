@@ -1,6 +1,56 @@
+%% unifyGrid_dropsondes
+%   unifyGrid_dropsondes - Transfer dropsonde data to uniform grid
+%   Read the data from original data files and do some quality checks
+%   (remove increasing height, remove spikes), interpolate data gaps. The
+%   checked data is then transfered to the uniform grid and some extra
+%   information is saved to be used later for netCDF file generation.
+%
+%   In general, three types of data are created (with rh as example):
+%       - uniSonderh:       a height time matrix with measurements filled at the
+%                           exact time/height point as they occured
+%       - uniSonderh_inst:  a height time matrix with measurements filled
+%                           the height they occured but with an assumed
+%                           instantaneous drop, i.e. entire profile with
+%                           only one time stamp)
+%       - uniSonderh_sondes:  a matrix with height/sonde_number dimensions;
+%                           all sondes on the uniform height grid but
+%                           directly in succession
+%
+%   In addition, an interpolation flag is added for each variable. This has
+%   the suffix _intFlag.
+%
+%   Syntax:  unifyGrid_dropsondes(pathtofolder,flightdate,uniHeight,uniTime,uniData,sondeVars)
+%
+%   Inputs:
+%       pathtofolder -  Path to base data folder
+%       flightdate -    string yyyymmdd for data to be converted
+%       uniHeigh -      array for uniform height grid
+%       uniTime -       array for uniform time grid
+%       uniData -       matrix with uniform time/height grid
+%       sondeVars -     list of dropsonde variable names to convert
+%
+%   Outputs:
+%       none; data is saved in [pathtofolder 'all_mat/uniData_dropsondes' flightdate '.mat']
+%
+%
+%   Author: Dr. Heike Konow
+%   Meteorological Institute, Hamburg University
+%   email address: heike.konow@uni-hamburg.de
+%   Website: http://www.mi.uni-hamburg.de/
+%   June 2017; Last revision: April 2020
+
+%------------- BEGIN CODE --------------
+
 function unifyGrid_dropsondes(pathtofolder,flightdate,uniHeight,uniTime,uniData,sondeVars)
 
-interpolate = 1;
+% For debugging: set testPlots to true to check interpolated and original
+% temperature profile from sonde number f
+testPlots = false;
+f = 2;
+
+% No need to change this unless there are problems with interpolation
+interpolate = true;
+
 
 % Set path to output file
 outfile = [pathtofolder 'all_mat/uniData_dropsondes' flightdate '.mat'];
@@ -23,6 +73,7 @@ for j=1:length(filename)
     % Set path to file
     filepath = [pathtofolder 'dropsonde/' filename{j}];
     
+    % Output
     disp(num2str(j))
     
     % Read time and height
@@ -49,7 +100,7 @@ for j=1:length(filename)
     sondeHeightCpy = sondeHeight;
     sondeHeightCpy(nanIndex_tmp) = [];
     
-  
+    % Remove instances with height increase during drop
     sondeHeight = removeHeightIncrease(sondeHeight);
     
     % Find indices of nan entries
@@ -79,17 +130,16 @@ end
 % If dropsondes were released
 if ~isempty(filename)
     
-    % Select Dropsonde variables to consider
-%     sondeVars = {'pres','tdry','dp','rh','u_wind','v_wind','wspd','wdir','dz',...
-%                  'mr','vt','theta','theta_e','theta_v','lat','lon'};
-    
-    % Preallocate arrays
-    uniDataDropsonde = uniData;
-    uniDataDropsonde_inst = uniData;
     
     % Loop dropsonde variables
     for i=1:length(sondeVars)
         disp(sondeVars{i})
+        
+         % Preallocate arrays
+        uniDataDropsonde = uniData;
+        uniDataDropsonde_inst = uniData;
+        interpolateMat = zeros(size(uniData));
+    
         nanSondeNumber=zeros(1,length(filename));
         % Loop dropsonde files
         for j=1:length(filename)
@@ -111,21 +161,30 @@ if ~isempty(filename)
             % Delete first value in profile (is either nan or unplausible
             % value, i.e. 99)
             data{j}(1) = nan;
-%             disp(num2str(j))
                     
             % Interpolate data if desired
             if interpolate
                 % Use function as before, but keep in mind that with
                 % profiles, height is "time"
-%                 if j==6 && i==2 %&& j==24
-%                     disp(num2str(j))
-%                 end
+                % Make sure that at least to non-nan values are in the data
                 if sum(isnan(data{j})) <= length(data{j})-2
-                     [~,index]=unique(sondeHeightForInterp{j});
-                     index=setdiff(1:length(data{j}),index);
-                     data{j}(index)=NaN;
-                     dataInt{j} = interpolateData(sondeHeightForInterp{j},data{j},10);
+                    
+                    % Get indices of dropsonde height values
+                     [~, index, ~] = unique(sondeHeightForInterp{j});
+                     
+                     % Look for missing dropsonde index values in
+                     % comparison to general height array
+                     index = setdiff(1:length(data{j}),index);
+                     
+                     % Set data at missing heights to nan
+                     data{j}(index) = NaN;
+                     
+                     % Interplate profile data
+                     [dataInt{j}, interpolate_flag{j}] = ...
+                         interpolateData(sondeHeightForInterp{j},data{j},10);
                      data{j} = dataInt{j};
+                else
+                    interpolate_flag{j} = nan(size(data{j}));
                 end
             end
 
@@ -141,10 +200,17 @@ if ~isempty(filename)
             % of one dropsonde)
             for k=1:length(indSonde_inst{j})
                 if ~isnan(indHeightUni_inst{j}(k)) && ~isnan(indSonde_inst{j}(k))
-                    uniDataDropsonde_inst(indHeightUni_inst{j}(k),indTimeUni_inst{j}) = data{j}(indSonde_inst{j}(k));
+                    uniDataDropsonde_inst(indHeightUni_inst{j}(k),indTimeUni_inst{j}) = ...
+                        data{j}(indSonde_inst{j}(k));
+                    
+                    interpolateMat(indHeightUni_inst{j}(k),indTimeUni_inst{j}) = ...
+                        interpolate_flag{j}(indSonde_inst{j}(k));
                 end
             end
+            
+            % Check if entire sonde profile is filled with nans
             if sum(isnan(uniDataDropsonde_inst(:,indTimeUni_inst{j})))==length(uniHeight)
+                % Add current sonde number to nan sonde index
                 nanSondeNumber(j) = j;
             end
         end
@@ -160,94 +226,61 @@ if ~isempty(filename)
             longNameTemp = ncreadatt(filepath,sondeVars{i},'long_name');
         end
         
+        % Add long name information
         longNameTemp_inst = [longNameTemp ', instantaneous drop'];
         longNameTemp_sondes = [longNameTemp ', single sondes'];
         
+        % Write variable information
         extra_info(end+1,:) = {sondeVars{i},unitsTemp,longNameTemp,['uniSonde' sondeVars{i}]};
         extra_info(end+1,:) = {[sondeVars{i} '_inst'],unitsTemp,longNameTemp_inst,['uniSonde' sondeVars{i} '_inst']};
         extra_info(end+1,:) = {[sondeVars{i} '_sondes'],unitsTemp,longNameTemp_sondes,['uniSonde' sondeVars{i} '_sondes']};
+        extra_info(end+1,:) = {[sondeVars{i} '_intFlag'],'',[longNameTemp '; interpolation flag'],['uniSonde' sondeVars{i} '_intFlag']};
         
         % Reduce variable data to only sondes
         uniDataDropsonde_sondes = uniDataDropsonde_inst(:,...
+                sum(isnan(uniDataDropsonde_inst),1)~=length(uniHeight));
+            
+        uniDataDropsonde_flag = interpolateMat(:,...
                 sum(isnan(uniDataDropsonde_inst),1)~=length(uniHeight));
             
         % If sonde file with only nans exist, reproduce this
         if size(uniDataDropsonde_sondes,2)<length(filename)
             nanSondeNumber = nanSondeNumber(nanSondeNumber~=0);
             tmp = nan(length(uniHeight),length(filename));
-            index=setdiff(1:length(filename),nanSondeNumber);
-            tmp(:,index)=uniDataDropsonde_sondes(:,:);
+            tmp2 = nan(length(uniHeight),length(filename));
+            index = setdiff(1:length(filename),nanSondeNumber);
+            tmp(:,index) = uniDataDropsonde_sondes(:,:);
+            tmp2(:,index) = uniDataDropsonde_flag(:,:);
             
-%             l = 1;
-%             
-%             tmp(:,1:nanSondeNumber(l)-1) = ...
-%                 uniDataDropsonde_sondes(:,1:nanSondeNumber(l)-1);
-%             
-%             if length(nanSondeNumber)>1
-%                 for l=nanSondeNumber(2):length(nanSondeNumber)                  
-%                     tmp(:,nanSondeNumber(l-1)+1:nanSondeNumber(l)-1) = ...
-%                 uniDataDropsonde_sondes(:,nanSondeNumber(l-1):nanSondeNumber(l)-1);
-%                 end
-%             end
-%             
-%             tmp(:,nanSondeNumber(l)+1:end) = ...
-%                 uniDataDropsonde_sondes(:,nanSondeNumber(l):end);
-            
-            clear uniDataDropsonde_sondes
+            % Add empty profile
+            clear uniDataDropsonde_sondes uniDataDropsonde_flag
             uniDataDropsonde_sondes = tmp;
-            clear tmp
+            uniDataDropsonde_flag = tmp2;
+            clear tmp tmp2
         end
             
         % Rename variables
         eval(['uniSonde' sondeVars{i} ' = uniDataDropsonde;'])
         eval(['uniSonde' sondeVars{i} '_inst = uniDataDropsonde_inst;'])
         eval(['uniSonde' sondeVars{i} '_sondes = uniDataDropsonde_sondes;'])
-        % Preallocate new arrays
-        uniDataDropsonde = uniData;
-        %%% Muss hier nicht auch die zweite Variable neu allociert werden??
-        % uniDataDropsonde_inst = uniData;
+        eval(['uniSonde' sondeVars{i} '_intFlag = uniDataDropsonde_flag;'])
+
     end
     
+    % Generate sonde number array
     uniSondeNumber = 1:size(uniDataDropsonde_sondes,2);
+    % Write variable information
     extra_info(end+1,:) = {'uniSondeNumber','','Dropsonde number','uniSondeNumber'};
     extra_info(end+1,:) = {'uniSondeLaunchTime','seconds since 1970-01-01 00:00:00 UTC','Dropsonde launch time','uniSondeLaunchTime'};
     
-%     % If test figures should be plotted
-%     if testPlots
-%         % Set path to second dropsonde file
-%         filepath = [pathtofolder 'dropsonde/' filename{2}];
-%         % read data
-%         sondeT = ncread(filepath,'tdry');
-%         sondeHeight = ncread(filepath,'gpsalt');
-%         sondeT(isnan(sondeHeight)) = [];
-%         sondeTime = ncread(filepath,'time');
-%         sondeTime = unixtime2sdn(sondeTime);
-%         sondeTime(isnan(sondeHeight)) = [];
-%         sondeHeight(isnan(sondeHeight)) = [];
-%         
-%         uniT = uniSondetdry_inst(:,uniTime==sondeTime(end));
-% 
-%         if isempty(uniT)
-%             absDiff = abs(uniTime-sondeTime(end));
-%             indMin = find(absDiff==min(absDiff));
-%             uniT = uniSondetdry_inst(:,indMin);
-%         end
-% 
-%         % plot test figure
-%         figure
-%         set(gcf,'Position',[1922 181 618 938])
-%         subplot(2,1,1)
-%         plot(sondeT,sondeHeight)
-%         ylabel('Height')
-%         xlabel('T')
-%         finetunefigures
-%         subplot(2,1,2)
-%         plot(uniT,uniHeight)
-%         ylabel('Height')
-%         xlabel('T')
-%         finetunefigures
-%     end
-
+    % If test figures should be plotted
+    if testPlots
+        
+        % Call plotting function
+        plotFigure(pathtofolder, f)
+    end
+    
+    % Clear variables
     clear indTimeUni indHeightUni indSonde uniT
 end
 
@@ -265,9 +298,64 @@ disp(' ')
 extra_info(1,:) = [];
 
 % Clear universal arrays
-clear uniData uniDataDropsonde uniDataDropsonde_inst unitsTemp uniDataDropsonde_sondes 
+clear uniData uniDataDropsonde uniDataDropsonde_inst unitsTemp uniDataDropsonde_sondes uniDataDropsonde_flag
 
 % Save data to file
-save(outfile,'uni*','flightdate','extra_info')%, 'sondeTime')
+save(outfile,'uni*','flightdate','extra_info')
+end
 
+function plotFigure(f)
 
+    % Set path to f-th dropsonde file
+        filepath = [pathtofolder 'dropsonde/' filename{f}];
+        % read data
+        sondeT = ncread(filepath,'tdry');
+        sondeHeight = ncread(filepath,'gpsalt');
+        sondeT(isnan(sondeHeight)) = [];
+        sondeTime = ncread(filepath,'time');
+        
+        % Change time format if necessary
+        if sondeTime(1) < sdn2unixtime(datenum(2000,1,1))
+            % Get launch time from file name
+            launchTimeString = filename{f}(2:16);
+            launchTime = datenum(launchTimeString, 'yyyymmdd_HHMMSS');
+
+            sondeTime = launchTime + 1/24/60/60 .* sondeTime;
+        else
+            sondeTime = unixtime2sdn(sondeTime);
+        end
+        
+        % Delete nan entries
+        sondeTime(isnan(sondeHeight)) = [];
+        sondeHeight(isnan(sondeHeight)) = [];
+        
+        % Copy variable
+        uniT = uniSondetdry_sondes(:,f);
+        
+        % If variable is empty
+        if isempty(uniT)
+            
+            % Look for profile closest in time
+            absDiff = abs(uniTime-sondeTime(end));
+            indMin = find(absDiff==min(absDiff));
+            uniT = uniSondetdry_inst(:,indMin);
+        end
+
+        % plot test figure
+        figure
+        set(gcf,'Position',[1922 181 618 938])
+        % Subfigure 1
+        subplot(2,1,1)
+        plot(sondeT,sondeHeight)
+        ylabel('Height')
+        xlabel('T')
+        finetunefigures
+        % Subfigure 2
+        subplot(2,1,2)
+        plot(uniT,uniHeight)
+        ylabel('Height')
+        xlabel('T')
+        finetunefigures
+end
+
+%------------- END OF CODE --------------

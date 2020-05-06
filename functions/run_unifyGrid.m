@@ -61,21 +61,21 @@ if unify
             filepath = listFiles([pathtofolder 'all_mat/*bahamas' flightdates_use{i} '*'],'full');
             load(filepath{end},'uniTime','uniHeight')
         end
-        
+
+        % Create empty variable according to unified grid
+        uniData = nan(length(uniHeight),length(uniTime));
+
         % Round time to seconds to avoid numerical deviations 
         uniTime = dateround(uniTime', 'second');
         
+        % Dropsondes
+        unifyGrid_dropsondes(pathtofolder,flightdates_use{i},uniHeight,uniTime,uniData,sondeVars)
+
         % Radiometer
         unifyGrid_radiometer(pathtofolder,flightdates_use{i},uniTime,radiometerVars)
         
         % Radar
         unifyGrid_radar(pathtofolder,flightdates_use{i},uniHeight,uniTime,radarVars)
-
-        % Create empty variable according to unified grid
-        uniData = nan(length(uniHeight),length(uniTime));
-        
-        % Dropsondes
-        unifyGrid_dropsondes(pathtofolder,flightdates_use{i},uniHeight,uniTime,uniData,sondeVars)
         
     end
 end
@@ -201,7 +201,7 @@ if savedata
     end
 
     % Change access rights
-    eval(['! chmod go+rx ' getPathString(outfile) '*' num2str(version) '.' num2str(subversion) '.nc'])
+%     eval(['! chmod go+rx ' getPathString(outfile) '*' num2str(version) '.' num2str(subversion) '.nc'])
 end
 toc
 end
@@ -221,6 +221,9 @@ function list = replaceVarName(list,instrument)
                 list{i}(ind_char(j)) = ...
                     lookuptable(strcmp(list{i}(ind_char(j)),lookuptable(:,1)) , ind_instr);
             end
+            
+        % Else, if the element is a string and the string is found in the
+        % lookup table
         elseif ischar(list{i}) && sum(strcmp(list{i},lookuptable(:,1)))~=0
             
             % Look for new name in lookup table
