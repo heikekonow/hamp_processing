@@ -73,8 +73,17 @@ for i=1:length(radiometerVars)
             error('Check radiometer frequencies')
         end
         
+        % Check if there are multiple time stamps in radiometer time
+        % e.g. EUREC4A: 4 Hz sampling rate with same second as time stamp
+        if ~isequal(radiometerTime, unique(radiometerTime))
+            [radiometerTime, data] = averageMultTimestamps(radiometerTime, data);
+        end
+        
         % Convert to serial date number
         radiometerTime = time2001_2sdn(radiometerTime);
+        
+        % Round time to seconds to avoid numerical deviations
+        radiometerTime = dateround(radiometerTime', 'second');
         
         % Remove times in the future and past
         ind_off = find(radiometerTime > datenum(flightdate,'yyyymmdd')+2 | ...
@@ -92,63 +101,80 @@ for i=1:length(radiometerVars)
         % Read units and long name
         unitsTemp = ncreadatt(filepath,'TBs','units');
         longNameTemp = 'Brightness temperature';
-%         extra_info(end+1,:) = {['TB_' radiometerVars{i}],unitsTemp,longNameTemp,['uniRadiometer' radiometerVars{i}]};
         
-        % Read channel frequencies
-%         freq = ncread(filepath,'frequencies');
-%         extra_info(end+1,:) = {['freq_' radiometerVars{i}],'GHz','channel center frequency',['uniRadiometer' radiometerVars{i} '_freq']};
-
-        % Preallocate radiometer data matrix of desired size    
-%         uniDataRadiometer = nan(size(data,1),size(uniData,2));   
+        % Preallocate array
         uniDataRadiometer = nan(size(data,1),length(uniTime));
         
+        % Catch unusual cases where first time entry is nan
         if isnan(radiometerTime(1))
             radiometerTime(1) = [];
             data(:,1) = [];
         end
-
+        
+        % If first radiometer time step is before first unified time step
+        % and last radiometer time step is after last unified time step
+        % (i.e. radiometer measurement started before take off and ended
+        % after landing)
         if radiometerTime(1)<uniTime(1) && radiometerTime(end)>uniTime(end)
+            % Find last time step before take off
             indStart = find(radiometerTime<uniTime(1),1,'last');
+            % Find first tim step after landing
             indEnd = find(radiometerTime>uniTime(end),1,'first');
+            % Restrict radiometer time array to between take off and landing
             radiometerTime = radiometerTime(indStart+1:indEnd-1);
+            % Restrict data array to between take off and landing
             data = data(:,indStart+1:indEnd-1);
+            
+        % If first radiometer time step is before first unified time step
+        % and last radiometer time step is before last unified time step
+        % (i.e. radiometer measurement started before take off and ended
+        % before landing)
         elseif radiometerTime(1)<uniTime(1) && radiometerTime(end)<uniTime(end)
+            % Find last time step before take off
             indStart = find(radiometerTime<uniTime(1),1,'last');
+            % Remove radiometer time steps before take off
             radiometerTime = radiometerTime(indStart+1:end);
+            % Remove data entries before take off
             data = data(:,indStart+1:end);
+            
+        % If first radiometer time step is after first unified time step
+        % and last radiometer time step is after last unified time step
+        % (i.e. radiometer measurement started after take off and ended
+        % after landing)
         elseif radiometerTime(1)>uniTime(1) && radiometerTime(end)>uniTime(end)
+            % Find first tim step after landing
             indEnd = find(radiometerTime>uniTime(end),1,'first');
+            % Remove radiometer time steps after landing
             radiometerTime = radiometerTime(1:indEnd-1);
+            % Remove data entries after landing
             data = data(:,1:indEnd-1);
-%             error('Problem, please check')
         end
         
+        % If the first time step is nan, remove everything until first
+        % non-nan time step
         if isnan(radiometerTime(1))
             firstNonNan = find(~isnan(radiometerTime),1,'first');
             radiometerTime(1:firstNonNan-1) = [];
             data(:,1:firstNonNan-1) = [];
         end
         
+        % If the last time step is nan, remove everything after last
+        % non-nan time step
         if isnan(radiometerTime(end))
             lastNonNan = find(~isnan(radiometerTime),1,'last');
             radiometerTime(lastNonNan+1:end) = [];
             data(:,lastNonNan+1:end) = [];
         end
         
+        % Get indexes corresponding to unified time array 
         [indTimeUni,indTimeRadiometer] = get_indTimeRadiometer(uniTime,radiometerTime);
 
+        % Copy data from corresponding times to new unified data array
         uniDataRadiometer(:,indTimeUni(~isnan(indTimeUni))) = ...
             data(:,indTimeRadiometer(~isnan(indTimeRadiometer)));
-%         for j=1:length(indTimeUni)
-%             % If data at this time exist
-%             if ~isnan(indTimeUni(j)) && ~isnan(indTimeRadiometer(j))
-%                 % Copy data into new matrix
-%                 uniDataRadiometer(:,indTimeUni(j)) = data(:,indTimeRadiometer(j));
-%             end
-%         end
+
         
         % Interpolated data
-%         if interpolate && sum(sum(isnan(data)))>0
         if interpolate && sum(sum(isnan(uniDataRadiometer)))>0
             % Make sure that only unique times are left, otherwise,
             % interpolation routine won't work
@@ -157,12 +183,10 @@ for i=1:length(radiometerVars)
 %             timeInterp = radiometerTime;
 %             data = data(:,ind_uniqueTime);
             [interpolated_data,interpolate_flag{i}] = interpolateData(uniTime,uniDataRadiometer,30);
-%             interpolated_data = interpolateData(radiometerTime_unique,data,30);
+
             % Rename
             uniDataRadiometer = interpolated_data;
-%             radiometerTime = radiometerTime_unique;
-%             dataInterp = interp1(timeInterp(~isnan(data)),data(~isnan(data)),...
-%                             timeInterp,'linear');
+
         end
         
         % Rename variable
@@ -217,3 +241,17 @@ clear uniData unitsTemp
 
 % Save data to file
 save(outfile,'uni*','flightdate','extra_info','interpolate_flag')
+
+end
+
+function [tNew, dataNew] = averageMultTimestamps(t, data)
+    
+    % Get unique time stamps and indices of common time stamps in data
+    [tNew, ~, idx] = unique(t);
+    
+    % Loop non time dimension (i.e. frequencies)
+    for i=size(data,1):-1:1
+        dataNew(i, :) = accumarray(idx, data(i, :), [], @mean);
+    end
+
+end

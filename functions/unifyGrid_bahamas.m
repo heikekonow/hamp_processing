@@ -13,8 +13,8 @@ end
 extra_info = cell(1,4);
 
 %% Load bahamas data
-filename = listFiles([pathtofolder 'bahamas/*' flightdate '*']);
-filepath = [pathtofolder 'bahamas/' filename{1}];
+filepath = listFiles([pathtofolder 'bahamas/*' flightdate '*'], 'full', 'mat');
+% filepath = [pathtofolder 'bahamas/' filename{1}];
 
 % List Bahamas variables in file
 varsInBahamasFile = nclistvars(filepath);
@@ -57,11 +57,6 @@ if length(bahamasTime)==10*length(uniTime)
 end
 
 % Select Bahamas variables to consider
-% bahamasVars = {'mixratio','P','RH','speed_air','theta','theta_v','Tv','U','V','W',...
-%                'wa','ws','Ts','Td','T','heading','pitch','roll','lat','lon'};
-% bahamasVars = {'MIXRATIO','PS','RELHUM','THETA','U','V','W','IRS_ALT'...
-%                 'IRS_HDG','IRS_THE','IRS_PHI','IRS_LAT','IRS_LON','TS'};
-            
 bahamasVarsUse = cellfun(@(x,y) replaceBahamasVarName(x,varsInBahamasFile),...
                  bahamasVars,'UniformOutput',false);
 bahamasVars = [bahamasVarsUse{:}];
