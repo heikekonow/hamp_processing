@@ -1,4 +1,4 @@
-function run_unifyGrid(flightdates_use, comment, contact)
+function run_unifyGrid(flightdates_use, comment, contact, altitudeThreshold, rollThreshold)
 
 tic 
 %% Switches 
@@ -72,7 +72,7 @@ if unify
         unifyGrid_dropsondes(pathtofolder,flightdates_use{i},uniHeight,uniTime,uniData,sondeVars)
 
         % Radiometer
-        unifyGrid_radiometer(pathtofolder,flightdates_use{i},uniTime,radiometerVars)
+        unifyGrid_radiometer(pathtofolder,flightdates_use{i},uniTime,radiometerVars, altitudeThreshold, rollThreshold)
         
         % Radar
         unifyGrid_radar(pathtofolder,flightdates_use{i},uniHeight,uniTime,radarVars)

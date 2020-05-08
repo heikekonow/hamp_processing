@@ -14,6 +14,11 @@ t2 = '20200131';
 % ! Add flight information to file flight_dates.m if they aren't already in
 % there
 
+% Set threshold for altitude to discard radiometer data
+altitudeThreshold = 4800;
+% Set threshold for roll angle to discard radiometer data
+rollThreshold = 5;
+
 % Get flight dates to use in this program
 flightdates_use = specifyDatesToUse(t1,t2);
 
@@ -26,7 +31,7 @@ checkfolderstructure(getPathPrefix, flightdates_use)
 runRadarAttitude(flightdates_use)
 
 % Unify data from bahamas, dropsondes, radar, radiometer onto common grid
-run_unifyGrid(flightdates_use, comment, contact)
+run_unifyGrid(flightdates_use, comment, contact, altitudeThreshold, rollThreshold)
 
 % Plot quicklooks for latest version
 plotHAMPQuicklook_sepFiles(flightdates_use)
