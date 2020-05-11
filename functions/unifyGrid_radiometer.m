@@ -193,10 +193,10 @@ for i=1:length(radiometerVars)
         eval(['uniRadiometer' radiometerVars{i} ' = uniDataRadiometer;'])
         eval(['uniRadiometer' radiometerVars{i} '_freq = freq;'])
     else
-        uniDataRadiometer = ones(size(uniTime)) .* -888;
+        uniDataRadiometer = ones(1, size(uniTime, 1)) .* -888;
         freq = -888;
         
-        interpolate_flag{i} = ones(size(uniTime)) .* -888;
+        interpolate_flag{i} = ones(1, size(uniTime, 1)) .* -888;
         % Rename variable
         eval(['uniRadiometer' radiometerVars{i} ' = uniDataRadiometer;'])
         eval(['uniRadiometer' radiometerVars{i} '_freq = freq;'])
