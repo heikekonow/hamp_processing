@@ -1,4 +1,4 @@
-function unifyGrid_radiometer(pathtofolder,flightdate,uniTime,radiometerVars)
+function unifyGrid_radiometer(pathtofolder,flightdate,uniTime,radiometerVars, altitudeThreshold, rollThreshold)
 
 interpolate = 1;
 
@@ -193,10 +193,10 @@ for i=1:length(radiometerVars)
         eval(['uniRadiometer' radiometerVars{i} ' = uniDataRadiometer;'])
         eval(['uniRadiometer' radiometerVars{i} '_freq = freq;'])
     else
-        uniDataRadiometer = ones(size(uniTime)) .* -888;
+        uniDataRadiometer = ones(1, size(uniTime, 1)) .* -888;
         freq = -888;
         
-        interpolate_flag{i} = ones(size(uniTime)) .* -888;
+        interpolate_flag{i} = ones(1, size(uniTime, 1)) .* -888;
         % Rename variable
         eval(['uniRadiometer' radiometerVars{i} ' = uniDataRadiometer;'])
         eval(['uniRadiometer' radiometerVars{i} '_freq = freq;'])
@@ -213,6 +213,10 @@ uniRadiometer = [uniRadiometerKV;...
 uniRadiometer_freq = [uniRadiometerKV_freq;...
                       uniRadiometer11990_freq;...
                       uniRadiometer183_freq];
+                  
+% Remove data below threshold height and during turns
+uniRadiometer = removeTurnAscentDescentData(uniRadiometer, flightdate, pathtofolder, ....
+    altitudeThreshold, rollThreshold);
                   
 % Replace faulty frequency value
 uniRadiometer_freq = round(100.*double(uniRadiometer_freq))./100;
@@ -253,5 +257,27 @@ function [tNew, dataNew] = averageMultTimestamps(t, data)
     for i=size(data,1):-1:1
         dataNew(i, :) = accumarray(idx, data(i, :), [], @mean);
     end
+
+end
+
+function tb = removeTurnAscentDescentData(tb, flightdate, pathtofolder, altitudeThreshold, rollThreshold)
+    % Look for bahamas file
+    bahamasfile = listFiles([pathtofolder 'all_mat/*bahamas*' flightdate '*'], 'full', 'mat');
+    
+    % Load altitude and roll data
+    load(bahamasfile, 'uniBahamasalt_1d', 'uniBahamasroll_1d')
+    
+    % Initialize index as false
+    ind = false(1, size(tb, 2));
+    
+    % Ignore times below altitude threshold
+    ind(uniBahamasalt_1d<altitudeThreshold) = true;
+    
+    % Ignore times with roll angle larger than roll angle threshold
+    ind(abs(uniBahamasroll_1d)>rollThreshold) = true;
+    
+    % Set brightness temperatures to nan for discarded times
+    tb(:, ind) = nan;
+    
 
 end
