@@ -188,19 +188,61 @@ for i=1:length(radiometerVars)
             uniDataRadiometer = interpolated_data;
 
         end
-        
-        % Rename variable
-        eval(['uniRadiometer' radiometerVars{i} ' = uniDataRadiometer;'])
-        eval(['uniRadiometer' radiometerVars{i} '_freq = freq;'])
+     
     else
-        uniDataRadiometer = ones(1, size(uniTime, 1)) .* -888;
-        freq = -888;
+        %% Look for one day where data are available
+                
+        % Check if data is available from previous flight
+        % Load list of flights
+        flight_dates;
+        indDay = find(strcmp(flightdate, NARVALdates(:,1)));
         
-        interpolate_flag{i} = ones(1, size(uniTime, 1)) .* -888;
-        % Rename variable
-        eval(['uniRadiometer' radiometerVars{i} ' = uniDataRadiometer;'])
-        eval(['uniRadiometer' radiometerVars{i} '_freq = freq;'])
+        % List all flights from current campaign
+        campaignDates = cell2mat(NARVALdates(strcmp(NARVALdates(:, 3), NARVALdates(indDay, 3)), 1));
+        
+        % Initialize control variable
+        k=1;
+        % Look for file from first day of campaign
+        previousfile = listFiles([pathtofolder 'radiometer/' ...
+                    radiometerVars{i} '/*' campaignDates(k, 3:end) '*'], 'full', 'mat');
+        
+        % If no data has been found go through all days and look for a file
+        % with data in it
+        while isempty(previousfile)  && k<=size(campaignDates, 1)
+            % Look for file from other flights
+            previousfile = listFiles([pathtofolder 'radiometer/' ...
+                    radiometerVars{i} '/*' NARVALdates(k, 3:end) '*'], 'full', 'mat');
+            
+            % Increase control variable
+            k = k+1;
+            
+        end
+        
+        % If no file with data from this campaign has been found
+        if isempty(previousfile)
+            % Set freqency to missing value
+            freq = -888;
+            
+        else
+            % Read frequencies from previous file
+            freq = ncread(previousfile, 'frequencies');
+            
+        end
+        
+        %% Add missing values
+
+        % Fill data array with missing value
+        uniDataRadiometer = ones(size(freq, 1), size(uniTime, 1)) .* -888;
+
+        % Fill interpolate flag with missing value
+        interpolate_flag{i} = ones(size(freq, 1), size(uniTime, 1)) .* -888;
+        
     end
+    
+        
+    % Rename variable
+    eval(['uniRadiometer' radiometerVars{i} ' = uniDataRadiometer;'])
+    eval(['uniRadiometer' radiometerVars{i} '_freq = freq;'])
     
     % Clean up
     clear indTimeUni indTimeRadiometer uniDataRadiometer data freq radiometerTime
