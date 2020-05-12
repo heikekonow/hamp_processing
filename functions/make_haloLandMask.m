@@ -2,7 +2,11 @@ function make_haloLandMask(flightdates_mask,outfile,varargin)
 
 % Set file paths
 % outfile = [getPathPrefix 'ucp_hamp_work_data/radarMask.mat'];
-ls_path = [getPathPrefix 'NANA_campaignData/metadata/lsmask-world8-var.dist5.5.zip.nc'];
+ls_path = [getPathPrefix getCampaignFolder(flightdates_mask{1}) 'aux/lsmask-world8-var.dist5.5.zip.nc'];
+
+if isempty(listFiles(ls_path))
+    error('Land mask file not found. Please download the file lsmask-world8-var.dist5.5.nc from https://www.ghrsst.org/ghrsst-data-services/tools/')
+end
 
 % % Define dates to use
 % flightdates_mask = get_campaignDates('2016');
@@ -34,19 +38,27 @@ landMask = cell(length(flightdates_mask),1);
 % Loop flights
 for f=1:length(flightdates_mask)
     % Get file names
-    filepath = listFiles([getPathPrefix  setCampaignFolder(flightdates_mask{f}) 'all_nc/*bahamas*' flightdates_mask{f} '*.nc'],'fullpath');
+    filepath = listFiles([getPathPrefix  getCampaignFolder(flightdates_mask{f}) 'all_nc/*bahamas*' flightdates_mask{f} '*.nc'],'fullpath', 'latest');
     
     % Read position data
-    lat = ncread(filepath{end},'lat');
-    lon = ncread(filepath{end},'lon');
+    lat = ncread(filepath,'lat');
+    lon = ncread(filepath,'lon');
     
     % Preallocate according to uni data format
     landMask{f} = zeros(length(lat),1);
     
+    disp([num2str(f)])
+    
     % Loop time
     for i=1:length(lat)
+        
+        if mod(i,500)==0
+            disp([num2str(i) ' / ' num2str(length(lat))])
+        end
+        
+        
         if ~isnan(lat(i)) || ~isnan(lon(i))
-    %         disp([num2str(f) ' ' num2str(i)])
+           
             % Calculate differences of aircraft position to land sea mask grid
             lat_diff = abs(lat(i)-lat_lsmask);
             lon_diff = abs(lon(i)-lon_lsmask);
@@ -71,7 +83,7 @@ for f=1:length(flightdates_mask)
 end
 
 %% Write data
-% If file allready exists, write in append mode to keep the other variables
+% If file already exists, write in append mode to keep the other variables
 % in the file, otherwise, generate a new one
 if exist(outfile,'file')
     save(outfile,'landMask','flightdates_mask','-append')
