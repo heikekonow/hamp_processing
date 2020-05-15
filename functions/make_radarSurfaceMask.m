@@ -1,26 +1,24 @@
-function make_radarSurfaceMask(flightdates_mask,maskFile)
+function make_radarSurfaceMask(flightdates_mask_input,maskFile)
 
 % File to load land mask from and to write surface mask to
 % maskFile = [getPathPrefix 'ucp_hamp_work_data/radarMask.mat'];
 
-% Rename variable
-flightdates_mask_input = flightdates_mask;
 
 % Load data
 load(maskFile,'noiseMask','landMask','flightdates_mask')
 
-% Check if dates match
-if ~isequal(flightdates_mask_input,flightdates_mask)
-    error('Flight dates don''t match please check input dates and dates in file')
-else
-    clear flightdates_mask_input
-end
+% % Check if dates match
+% if ~isequal(flightdates_mask_input,flightdates_mask)
+%     error('Flight dates don''t match please check input dates and dates in file')
+% else
+%     clear flightdates_mask_input
+% end
 
 % Preallocate
-surfaceMask = cell(length(flightdates_mask),1);
+surfaceMask = cell(length(flightdates_mask_input),1);
 
 % Loop all dates from file
-for i=1:length(flightdates_mask)
+for i=1:length(flightdates_mask_input)
     
     % Find radar files from day. 
     % ! Obs: use version 2.3 for this analysis since side lobes during
@@ -30,40 +28,46 @@ for i=1:length(flightdates_mask)
 %     else
 %         radarfiles = listFiles([getPathPrefix 'NANA_campaignData/all_nc/*' flightdates_mask{i} '*v2.3*.nc'],'fullpath');
 %     end 
-    radarfiles = listFiles([getPathPrefix  setCampaignFolder(flightdates_mask{i}) 'all_nc/*' ...
-                            flightdates_mask{i} '*v2.3*.nc'],'fullpath');
+    radarfiles = listFiles([getPathPrefix  getCampaignFolder(flightdates_mask_input{i}) 'all_nc/*radar*' ...
+                            flightdates_mask_input{i} '*.nc'],'fullpath', 'mat');
     
     % Output
-    disp(flightdates_mask{i})
+    disp(flightdates_mask_input{i})
+    
+    % Find index of current date in land mask
+    ind = strcmp(flightdates_mask_input{i}, flightdates_mask);
     
     % Check if radar was working
-    if ncVarInFile(radarfiles{end},'dBZ')
+    if ncVarInFile(radarfiles,'dBZ')
+        
         
         % Read data
-        z = ncread(radarfiles{end},'dBZ');
-        t = unixtime2sdn(ncread(radarfiles{end},'time'));
-        h = ncread(radarfiles{end},'height');
+        z = ncread(radarfiles,'dBZ');
+        t = unixtime2sdn(ncread(radarfiles,'time'));
+        h = ncread(radarfiles,'height');
         
         % Remove -inf values
         z(~isfinite(z)) = nan;
         
-        landmask_nan = double(landMask{i});
+        landmask_nan = double(landMask{ind});
         landmask_nan(landmask_nan==0) = nan;
 
-        landmask = landMask{i};
+        landmask_flight = landMask{ind};
 
         % Omit the first and last two minutes of each flight in land mask, since
-        % the radar has not been operating durign these times...
-        landmask(1:120) = false;
-        landmask(end-120:end) = false;
+        % the radar has not been operating during these times...
+        landmask_flight(1:120) = false;
+        landmask_flight(end-120:end) = false;
         
-        % Remove noise and set to nan
-        z(logical(noiseMask{i})) = nan;
+        if exist('noiseMask', 'var')
+            % Remove noise and set to nan
+            z(logical(noiseMask{i})) = nan;
+        end
         
         % Calculate maximum reflectivity for each profile
         zMax = max(z,[],1,'omitnan');
         % Remove maximum reflectivity values over sea
-        zMax(~landmask) = nan;
+        zMax(~landmask_flight) = nan;
         
 %         av_zMax = mean(zMax,'omitnan');
 %         std_zMax = std(zMax,'omitnan');
@@ -108,7 +112,7 @@ for i=1:length(flightdates_mask)
 %         ind_SeaSurf(ind_SeaSurf==0) = nan;
 
         % Remove time steps over ocean and with empty profiles
-        hSurf_filledNan(~landmask) = nan;
+        hSurf_filledNan(~landmask_flight) = nan;
         hSurf_filledNan(ind_noReflectivityProfile) = nan;
         
         % Generate empty array for surface mask
@@ -122,7 +126,7 @@ for i=1:length(flightdates_mask)
         for j=1:length(t)
             
             % If time step is over land and surface height is not nan
-            if landmask(j) && ~isnan(hSurf_filledNan(j))
+            if landmask_flight(j) && ~isnan(hSurf_filledNan(j))
                 
                 % Find range gate in which surface height falls in
                 diff_hSurf = abs(hSurf_filledNan(j)-h);
