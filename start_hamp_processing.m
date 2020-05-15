@@ -7,9 +7,9 @@ contact = 'heike.konow@uni-hamburg.de';
 
 %% Specify time frame for data conversion
 % Start date
-t1 = '20200131';  
+t1 = '20200119';  
 % End date
-t2 = '20200131';
+t2 = '20200119';
 % ! Add flight information to file flight_dates.m if they aren't already in
 % there
 
@@ -24,7 +24,7 @@ flightdates_use = specifyDatesToUse(t1,t2);
 landMask = 1;
 noiseMask = 0;
 calibrationMask = 0;
-surfaceMask = 0;
+surfaceMask = 1;
 seaSurfaceMask = 0;
 
 %%
