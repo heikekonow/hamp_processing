@@ -18,14 +18,22 @@ radarInfoMask = cell(length(flightdates_mask),1);
 for i=1:length(flightdates_mask)
     radarInfoMask{i} = zeros(size(noiseMask{i}));
     
-    radarInfoMask{i}(surfaceMask{i}) = 2;
+    if exist('surfaceMask', 'var')
+        radarInfoMask{i}(surfaceMask{i}) = 2;
+    end
     
-    radarInfoMask{i}(seaSurfaceMask{i}) = 3;
+    if exist('seaSurfaceMask', 'var')
+        radarInfoMask{i}(seaSurfaceMask{i}) = 3;
+    end
     
-    radarInfoMask{i}(calibrationMask{i}) = 4;
+    if exist('calibrationMask', 'var')
+        radarInfoMask{i}(calibrationMask{i}) = 4;
+    end
     
     % make noise at last to overwrite all other masks
-    radarInfoMask{i}(noiseMask{i}) = 1;
+    if exist('noiseMask', 'var')
+        radarInfoMask{i}(noiseMask{i}) = 1;
+    end
     
     if nargin>2 && strcmp(varargin{1},'figures')
         
