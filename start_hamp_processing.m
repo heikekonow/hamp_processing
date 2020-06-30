@@ -25,7 +25,8 @@ landMask = 1;
 noiseMask = 0;
 calibrationMask = 0;
 surfaceMask = 1;
-seaSurfaceMask = 0;
+seaSurfaceMask = 1;
+numRangeGatesForSeaSurface = 4;
 
 %%
 
@@ -36,7 +37,8 @@ seaSurfaceMask = 0;
 % runRadarAttitude(flightdates_use)
 
 % Create radar info mask
-run_makeRadarMasks(landMask, noiseMask, calibrationMask, surfaceMask, seaSurfaceMask, flightdates_use)
+run_makeRadarMasks(landMask, noiseMask, calibrationMask, surfaceMask, seaSurfaceMask, ...
+                    flightdates_use, numRangeGatesForSeaSurface)
 
 % % Unify data from bahamas, dropsondes, radar, radiometer onto common grid
 run_unifyGrid(flightdates_use, comment, contact, altitudeThreshold, rollThreshold)

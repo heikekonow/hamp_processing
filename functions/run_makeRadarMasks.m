@@ -1,4 +1,5 @@
-function run_makeRadarMasks(landMask, noiseMask, calibrationMask, surfaceMask, seaSurfaceMask, flightdates)
+function run_makeRadarMasks(landMask, noiseMask, calibrationMask, surfaceMask, ...
+                            seaSurfaceMask, flightdates, numRangeGatesForSeaSurface)
 
 % Run script to call functions for radar data masks
 
@@ -45,7 +46,7 @@ end
 
 if seaSurfaceMask
     disp('Generating sea surface mask for all flights.')
-    make_radarSeaSurfaceMask(flightdates,outfile)
+    make_radarSeaSurfaceMask(flightdates, outfile, numRangeGatesForSeaSurface)
 else
     disp('Skipping sea surface mask...')
 end

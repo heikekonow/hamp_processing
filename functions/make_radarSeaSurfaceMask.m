@@ -1,4 +1,4 @@
-function make_radarSeaSurfaceMask(flightdates_mask,maskFile)
+function make_radarSeaSurfaceMask(flightdates_mask,maskFile, numRangeGatesForSeaSurface)
 
 % File to load land mask from and to write surface mask to
 % maskFile = [getPathPrefix 'ucp_hamp_work_data/radarMask.mat'];
@@ -23,63 +23,46 @@ seaSurfaceMask = cell(length(flightdates_mask),1);
 for i=1:length(flightdates_mask)
     
     % Find radar files from day. 
-    % ! Obs: use version 2.3 for this analysis since side lobes during
-    % turns have not been removed in this data set
-    radarfiles = listFiles([getPathPrefix  setCampaignFolder(flightdates_mask{i}) 'all_nc/*' ...
-                        flightdates_mask{i} '*v2.3*.nc'],'fullpath');
+    radarfiles = listFiles([getPathPrefix  getCampaignFolder(flightdates_mask{i}) ...
+                 'all_nc/radar*' flightdates_mask{i} '*.nc'],'fullpath');
+    
+    % Look for version numbers below v1.0 to ensure that side lobes haven't
+    % been removed from the data yet
+    versionNum = cellfun(@(x) getVersionFromFilename(x, 'num'), radarfiles);
+    ind_version = find(versionNum < 1, 1, 'last');
     
     % Output
     disp(flightdates_mask{i})
     
     % Check if radar was working
-    if ncVarInFile(radarfiles{end},'dBZ')
+    if ncVarInFile(radarfiles{ind_version},'dBZ')
         
         % Read data
-        z = ncread(radarfiles{end},'dBZ');
-        t = unixtime2sdn(ncread(radarfiles{end},'time'));
-        h = ncread(radarfiles{end},'height');
+        z = ncread(radarfiles{ind_version},'dBZ');
+        t = unixtime2sdn(ncread(radarfiles{ind_version},'time'));
+        h = ncread(radarfiles{ind_version},'height');
         
         % Remove -inf values
         z(~isfinite(z)) = nan;
         
-        landmask_nan = double(landMask{i});
-        landmask_nan(landmask_nan==0) = nan;
-
+        
+%         landmask_nan = double(landMask{i});
+%         landmask_nan(landmask_nan==0) = nan;
+        
+        % Rename
         landmask = landMask{i};
         
-        ind_SeaSurf = sum(~isnan(z(1:4,:)),1)~=0;
-%         ind_SeaSurf(ind_SeaSurf==0) = nan;
+        % Find instances where there is radar signal in any of the lowest
+        % four range gates
+        ind_SeaSurf = sum(~isnan(z(1:numRangeGatesForSeaSurface,:)),1)~=0;
         
         % Generate empty array for surface mask
         seaSurfaceMask{i} = false(length(h),length(t));
         
-        seaSurfaceMask{i}(1:4,ind_SeaSurf & ~landmask') = true;
+        % Set lowest four range gates to sea surface if there was a radar
+        % signal in any of them and HALO was not over land
+        seaSurfaceMask{i}(1:numRangeGatesForSeaSurface, ind_SeaSurf & ~landmask') = true;
         
-%         if i==22
-%             % Plot resulting figure
-%             fh = figure;
-%             set(gcf, 'color','white');
-%             imagesc(t,h,z)
-%             addWhiteToColormap
-%             set(gca,'YDir','normal')
-%             set(gca,'XLim',[736618.408189553 736618.458438197],...
-%                     'YLim',[-225 4750])
-%             datetick('x','HH:MM','Keeplimits')
-%             title(flightdates_mask{i})
-%             hold on
-%             plot(t,landmask_nan-100,'rx')
-%             figure(fh)
-%             hold on
-% 
-%             [row,col] = find(seaSurfaceMask{i});
-%             plot(t(col),h(row),'x','Color',[.8 .8 .8])
-%             export_fig(['/data/share/narval/work/heike/NANA_campaignData/figures/findSeaSurf_' flightdates_mask{i} '_1'],'-pdf')
-%             
-%             set(gca,'XLim',[736618.46626664 736618.468793588],...
-%                     'YLim',[-225 365])
-%             datetick('x','HH:MM','Keeplimits')
-%             export_fig(['/data/share/narval/work/heike/NANA_campaignData/figures/findSeaSurf_' flightdates_mask{i} '_2'],'-pdf')
-%         end
     end
     
     disp(' ')

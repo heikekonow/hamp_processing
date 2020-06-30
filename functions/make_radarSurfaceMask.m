@@ -29,7 +29,12 @@ for i=1:length(flightdates_mask_input)
 %         radarfiles = listFiles([getPathPrefix 'NANA_campaignData/all_nc/*' flightdates_mask{i} '*v2.3*.nc'],'fullpath');
 %     end 
     radarfiles = listFiles([getPathPrefix  getCampaignFolder(flightdates_mask_input{i}) 'all_nc/*radar*' ...
-                            flightdates_mask_input{i} '*.nc'],'fullpath', 'mat');
+                            flightdates_mask_input{i} '*.nc'],'fullpath');
+    
+    % Look for version numbers below v1.0 to ensure that side lobes haven't
+    % been removed from the data yet
+    versionNum = cellfun(@(x) getVersionFromFilename(x, 'num'), radarfiles);
+    ind_version = find(versionNum < 1, 1, 'last');
     
     % Output
     disp(flightdates_mask_input{i})
@@ -38,13 +43,13 @@ for i=1:length(flightdates_mask_input)
     ind = strcmp(flightdates_mask_input{i}, flightdates_mask);
     
     % Check if radar was working
-    if ncVarInFile(radarfiles,'dBZ')
+    if ncVarInFile(radarfiles{ind_version},'dBZ')
         
         
         % Read data
-        z = ncread(radarfiles,'dBZ');
-        t = unixtime2sdn(ncread(radarfiles,'time'));
-        h = ncread(radarfiles,'height');
+        z = ncread(radarfiles{ind_version},'dBZ');
+        t = unixtime2sdn(ncread(radarfiles{ind_version},'time'));
+        h = ncread(radarfiles{ind_version},'height');
         
         % Remove -inf values
         z(~isfinite(z)) = nan;

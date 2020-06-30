@@ -16,7 +16,19 @@ key = {0,'good';
 radarInfoMask = cell(length(flightdates_mask),1);
 
 for i=1:length(flightdates_mask)
-    radarInfoMask{i} = zeros(size(noiseMask{i}));
+    
+    % Look for existing masks to preallocate array
+    if exist('noiseMask', 'var')
+        radarInfoMask{i} = zeros(size(noiseMask{i}));
+    elseif exist('surfaceMask', 'var')
+        radarInfoMask{i} = zeros(size(surfaceMask{i}));
+    elseif exist('seaSurfaceMask', 'var')
+        radarInfoMask{i} = zeros(size(seaSurfaceMask{i}));
+    elseif exist('calibrationMask', 'var')
+        radarInfoMask{i} = zeros(size(calibrationMask{i}));
+    else
+        error('No mask file found.')
+    end
     
     if exist('surfaceMask', 'var')
         radarInfoMask{i}(surfaceMask{i}) = 2;
@@ -35,8 +47,10 @@ for i=1:length(flightdates_mask)
         radarInfoMask{i}(noiseMask{i}) = 1;
     end
     
+    % Plot and save figure with radar mask if specified in varargin
     if nargin>2 && strcmp(varargin{1},'figures')
         
+        % Load Bahamas data
         bahamasfile = listFiles([getPathPrefix getCampaignFolder(flightdates_mask{i})  'all_nc/*bahamas*' flightdates_mask{i} '*.nc'],'fullpath');
         t = ncread(bahamasfile{end},'time');
         h = ncread(bahamasfile{end},'height');
@@ -44,6 +58,7 @@ for i=1:length(flightdates_mask)
             t = unixtime2sdn(t);
         end
         
+        % Plot
         fh = figure;
         cm = brewermap(5,'Set1');
         cm(1,:) = [];
@@ -56,20 +71,17 @@ for i=1:length(flightdates_mask)
         ch.Ticks = ch.Limits(1)+ch.Limits(2)/size(colormap,1)/2 : ch.Limits(2)/size(colormap,1) : ch.Limits(2);
         ch.TickLabels = key(:,2);
         set(gca,'YDir','normal')
-%         set(gca,'XLim',[736618.408189553 736618.458438197],...
-%                 'YLim',[-225 4750])
         datetick('x','HH:MM','Keeplimits')
         title(flightdates_mask{i})
         xlabel('Time (UTC)')
         ylabel('Height (m)')
         setFontSize(gca,12)
-        if i==22
-%             export_fig([getPathPrefix 'NANA_campaignData/figures/radarMask_' flightdates_mask{i} '_1'],'-pdf')
-            export_fig([getPathPrefix 'NANA_campaignData/figures/radarMask_' flightdates_mask{i} '_1'],'-png')
-        end
+        
+        export_fig([getPathPrefix getCampaignFolder(flightdates_mask{i}) 'figures/radarMask_' flightdates_mask{i} '_1'],'-png')
     end
 end
 
+% Rename key
 key = {1,'noise';
        2,'surface';
        3,'sea'
