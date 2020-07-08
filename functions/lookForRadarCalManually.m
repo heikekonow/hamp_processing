@@ -74,13 +74,13 @@ for i=1:length(flightdates)
         ylabel('Height (m)')
         title(flightdates{i})
         datetick('x', 'HH:MM:SS' ,'keeplimits')
-        xl = xlim;
         
         % Output in command line
         disp('Use the zoom tool to zoom into calibration interval and press any key.')
 
         pause
         disp('If calibration intervals were identified, copy the next line into radar_mask.m.')
+        xl = xlim;
         sprintf('%s'', [%16.9f %16.9f], ''calibration', flightdates{i}, xl(1), xl(2))
         disp('Press any key to continue.')
         pause
