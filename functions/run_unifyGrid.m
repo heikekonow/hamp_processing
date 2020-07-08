@@ -167,6 +167,23 @@ if savedata
                         
                         
                     end
+                    
+                    %% Add radar quality mask
+                    if radarmask
+                        % Look for file with radar mask
+                        maskfile = listFiles(...
+                            [getPathPrefix getCampaignFolder(flightdates_use{i}) 'aux/radarMask_' ...
+                             getCampaignName(flightdates_use{i}) '.mat'],...
+                            'full', 'mat');
+                        
+                        if isempty(maskfile)
+                            error('No radar mask file found. Make sure that file exists and check path')
+                        else
+                            [ncVarNames, ncDims, varData, varInfo] = ...
+                                addMaskToOutput(maskfile, flightdates_use{i}, ncVarNames, ncDims, varData, varInfo);
+                        end
+                    end
+                    %%
 
                     % Get flight infos
                     flightdateDN = datenum(flightdates_use{i},'yyyymmdd');

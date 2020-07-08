@@ -9,7 +9,7 @@ contact = 'heike.konow@uni-hamburg.de';
 % Start date
 t1 = '20200119';  
 % End date
-t2 = '20200119';
+t2 = '20200218';
 % ! Add flight information to file flight_dates.m if they aren't already in
 % there
 
@@ -22,8 +22,8 @@ rollThreshold = 5;
 flightdates_use = specifyDatesToUse(t1,t2);
 
 landMask = 1;
-noiseMask = 0;
-calibrationMask = 0;
+noiseMask = 1;
+calibrationMask = 1;
 surfaceMask = 1;
 seaSurfaceMask = 1;
 numRangeGatesForSeaSurface = 4;
@@ -41,7 +41,7 @@ run_makeRadarMasks(landMask, noiseMask, calibrationMask, surfaceMask, seaSurface
                     flightdates_use, numRangeGatesForSeaSurface)
 
 % % Unify data from bahamas, dropsondes, radar, radiometer onto common grid
-run_unifyGrid(flightdates_use, comment, contact, altitudeThreshold, rollThreshold)
+% run_unifyGrid(flightdates_use, comment, contact, altitudeThreshold, rollThreshold)
 
 % Plot quicklooks for latest version
 % plotHAMPQuicklook_sepFiles(flightdates_use)
