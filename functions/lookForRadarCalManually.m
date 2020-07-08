@@ -4,6 +4,11 @@
 %    based on the original measurement files as they still contain the entire
 %    ground echo. Calibration intervals can be identified by looking for
 %    times, where the ground echo area is narrower than before and after.
+%   
+%    This script can also be used to identify erroneous measurements by the
+%    cloud radar. In this case, zoom into error intervals instead of
+%    calibration intervals, and replace the string 'calibration' with the
+%    string 'noise' in the file radar_mask.m.
 %
 %   Syntax:  lookForRadarCalManually
 %
