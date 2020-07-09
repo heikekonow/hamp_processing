@@ -47,15 +47,10 @@ for f=1:length(flightdates_mask)
     % Preallocate according to uni data format
     landMask{f} = zeros(length(lat),1);
     
-    disp([num2str(f)])
+    disp(flightdates_mask{f})
     
     % Loop time
     for i=1:length(lat)
-        
-        if mod(i,500)==0
-            disp([num2str(i) ' / ' num2str(length(lat))])
-        end
-        
         
         if ~isnan(lat(i)) || ~isnan(lon(i))
            
