@@ -21,6 +21,8 @@ rollThreshold = 5;
 % Get flight dates to use in this program
 flightdates_use = specifyDatesToUse(t1,t2);
 
+% Add radar data mask
+addRadarMask = true;
 landMask = 1;
 noiseMask = 1;
 calibrationMask = 1;
@@ -36,12 +38,14 @@ numRangeGatesForSeaSurface = 4;
 % Correct radar data for aircraft attitude
 % runRadarAttitude(flightdates_use)
 
-% Create radar info mask
-run_makeRadarMasks(landMask, noiseMask, calibrationMask, surfaceMask, seaSurfaceMask, ...
-                    flightdates_use, numRangeGatesForSeaSurface)
+if addRadarMask
+    % Create radar info mask
+    run_makeRadarMasks(landMask, noiseMask, calibrationMask, surfaceMask, seaSurfaceMask, ...
+                        flightdates_use, numRangeGatesForSeaSurface)
+end
 
 % % Unify data from bahamas, dropsondes, radar, radiometer onto common grid
-% run_unifyGrid(flightdates_use, comment, contact, altitudeThreshold, rollThreshold)
+% run_unifyGrid(flightdates_use, comment, contact, altitudeThreshold, rollThreshold, addRadarMask)
 
 % Plot quicklooks for latest version
 % plotHAMPQuicklook_sepFiles(flightdates_use)

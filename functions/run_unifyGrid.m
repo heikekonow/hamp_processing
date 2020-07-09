@@ -1,4 +1,4 @@
-function run_unifyGrid(flightdates_use, comment, contact, altitudeThreshold, rollThreshold)
+function run_unifyGrid(flightdates_use, comment, contact, altitudeThreshold, rollThreshold, radarmask)
 
 tic 
 %% Switches 
