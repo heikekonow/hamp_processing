@@ -52,5 +52,5 @@ else
 end
 
 disp('Combining all masks into one')
-make_radarInfoMask(flightdates,outfile,'figures')
-% make_radarInfoMask(flightdates_mask,outfile)
+% make_radarInfoMask(flightdates,outfile,'figures')
+make_radarInfoMask(flightdates,outfile)

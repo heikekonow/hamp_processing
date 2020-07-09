@@ -9,10 +9,15 @@ contact = 'heike.konow@uni-hamburg.de';
 % Start date
 t1 = '20200119';  
 % End date
-t2 = '20200218';
+t2 = '20200119';
 % ! Add flight information to file flight_dates.m if they aren't already in
 % there
 
+%% Set version information
+version = 0;
+subversion = 5;
+
+%%
 % Set threshold for altitude to discard radiometer data
 altitudeThreshold = 4800;
 % Set threshold for roll angle to discard radiometer data
@@ -44,8 +49,8 @@ if addRadarMask
                         flightdates_use, numRangeGatesForSeaSurface)
 end
 
-% % Unify data from bahamas, dropsondes, radar, radiometer onto common grid
-% run_unifyGrid(flightdates_use, comment, contact, altitudeThreshold, rollThreshold, addRadarMask)
+% Unify data from bahamas, dropsondes, radar, radiometer onto common grid
+run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, rollThreshold, addRadarMask)
 
 % Plot quicklooks for latest version
 % plotHAMPQuicklook_sepFiles(flightdates_use)
