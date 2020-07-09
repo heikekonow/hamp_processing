@@ -13,7 +13,7 @@ t2 = str2num(t2);
 %% List files
 
 % Load information on flight dates and campaigns
-flight_dates;
+NARVALdates = flight_dates;
 
 % Extract dates
 flightdates_all = NARVALdates(:,1);

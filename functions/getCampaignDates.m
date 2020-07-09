@@ -1,6 +1,6 @@
 function narvaldates = getCampaignDates(campaign)
 
-flight_dates;
+[NARVALdates, ~] = flight_dates;
 if strcmp(campaign,'2016')
     narvalind = strcmp(NARVALdates(:,3),'NARVAL-II') | ...
                 strcmp(NARVALdates(:,3),'NAWDEX');
