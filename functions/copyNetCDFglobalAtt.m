@@ -7,7 +7,7 @@ if ~exist(outfile,'file')
 end
 
 % Read flight date and numbers
-flight_dates;
+[NARVALdates, NARVALdatenum] = flight_dates;
 
 % Read nc file information
 infileInfo = ncinfo(infile);
