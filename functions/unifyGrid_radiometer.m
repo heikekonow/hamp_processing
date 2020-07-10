@@ -194,7 +194,7 @@ for i=1:length(radiometerVars)
                 
         % Check if data is available from previous flight
         % Load list of flights
-        flight_dates;
+        [NARVALdates, ~] = flight_dates;
         indDay = find(strcmp(flightdate, NARVALdates(:,1)));
         
         % List all flights from current campaign
