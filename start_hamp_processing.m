@@ -9,14 +9,14 @@ contact = 'heike.konow@uni-hamburg.de';
 % Start date
 t1 = '20200119';  
 % End date
-t2 = '20200119';
+t2 = '20200218';
 % ! Add flight information to file flight_dates.m if they aren't already in
 % there
 
 %% Processing steps
-correctAttitude = true;
-addRadarMask = false;
-unifyGrid = false;
+correctAttitude = false;
+addRadarMask = true;
+unifyGrid = true;
 quicklooks = false;
 
 %% Set version information

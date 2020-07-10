@@ -23,7 +23,10 @@ if iscell(var)
         var_interp{j} = nan(length(z),size(h2,2));
         for i=1:size(h2,2)
             % Interpolate data on desired grid (linear)
-            var_interp{j}(:,i) = interp1(h2(:,i),var{j}(:,i),z);
+%             var_interp{j}(:,i) = interp1(h2(:,i),var{j}(:,i),z);
+
+            % Interpolate data on desired grid (nearest)
+            var_interp{j}(:,i) = interp1(h2(:,i),var{j}(:,i),z, 'nearest');
 
         end
     end
@@ -33,7 +36,10 @@ else
     for i=1:size(h2,2)
         if sum(isnan(h2(:,i)),1)==0
             % Interpolate data on desired grid (linear)
-            var_interp(:,i) = interp1(h2(:,i),var(:,i),z);
+%             var_interp(:,i) = interp1(h2(:,i),var(:,i),z);
+
+            % Interpolate data on desired grid (nearest)
+            var_interp(:,i) = interp1(h2(:,i),var(:,i),z, 'nearest');
         end
     end
 end
