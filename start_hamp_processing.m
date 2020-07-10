@@ -13,6 +13,12 @@ t2 = '20200119';
 % ! Add flight information to file flight_dates.m if they aren't already in
 % there
 
+%% Processing steps
+correctAttitude = true;
+addRadarMask = false;
+unifyGrid = false;
+quicklooks = false;
+
 %% Set version information
 version = 0;
 subversion = 5;
@@ -27,7 +33,6 @@ rollThreshold = 5;
 flightdates_use = specifyDatesToUse(t1,t2);
 
 % Add radar data mask
-addRadarMask = true;
 landMask = 1;
 noiseMask = 1;
 calibrationMask = 1;
@@ -38,10 +43,12 @@ numRangeGatesForSeaSurface = 4;
 %%
 
 % Check structure of folders for data files
-% checkfolderstructure(getPathPrefix, flightdates_use)
+checkfolderstructure(getPathPrefix, flightdates_use)
 
-% Correct radar data for aircraft attitude
-% runRadarAttitude(flightdates_use)
+if correctAttitude
+    % Correct radar data for aircraft attitude
+    runRadarAttitude(flightdates_use)
+end
 
 if addRadarMask
     % Create radar info mask
@@ -49,8 +56,12 @@ if addRadarMask
                         flightdates_use, numRangeGatesForSeaSurface)
 end
 
-% Unify data from bahamas, dropsondes, radar, radiometer onto common grid
-run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, rollThreshold, addRadarMask)
+if unifyGrid
+    % Unify data from bahamas, dropsondes, radar, radiometer onto common grid
+    run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, rollThreshold, addRadarMask)
+end
 
-% Plot quicklooks for latest version
-% plotHAMPQuicklook_sepFiles(flightdates_use)
+if quicklooks
+    % Plot quicklooks for latest version
+    plotHAMPQuicklook_sepFiles(flightdates_use)
+end
