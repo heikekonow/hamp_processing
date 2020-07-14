@@ -15,9 +15,10 @@ t2 = '20200218';
 
 %% Processing steps
 correctAttitude = false;
-addRadarMask = true;
-unifyGrid = true;
-quicklooks = false;
+addRadarMask = false;
+unifyGrid = false;
+quicklooks = true;
+removeRadarClutter = false;
 
 %% Set version information
 version = 0;
@@ -58,7 +59,8 @@ end
 
 if unifyGrid
     % Unify data from bahamas, dropsondes, radar, radiometer onto common grid
-    run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, rollThreshold, addRadarMask)
+    run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, ...
+        rollThreshold, addRadarMask, removeRadarClutter)
 end
 
 if quicklooks
