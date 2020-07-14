@@ -200,8 +200,9 @@ xlim([round(min(lon))-1 round(max(lon))+1])
 ylim([round(min(lat))-1 round(max(lat))+1])
 finetunefigures
 
-versionstring = findLatestVersionInfo(bahamasfile);
-[a,~] = suplabel([datestr(t(1),'dd.mm.yyyy') ' - ' versionstring{1}],'t');
+% versionstring = findLatestVersionInfo(bahamasfile);
+versionstring = getVersionFromFilename(bahamasfile);
+[a,~] = suplabel([datestr(t(1),'dd.mm.yyyy') ' - v' versionstring],'t');
 pos = a.Position;
 set(a,'Position',pos+[0 -0.02 0 0])
 

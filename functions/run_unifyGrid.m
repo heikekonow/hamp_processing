@@ -1,11 +1,12 @@
-function run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, rollThreshold, radarmask)
+function run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, ...
+                        rollThreshold, radarmask,  removeRadarClutter)
 
 tic 
 %% Switches 
 % usually all set to 1, but can be useful for debugging
 %
 % Unify data onto common grid
-unify = 1;
+unify = 0;
 % Save data to netcdf
 savedata = 1;
 % Redo unified bahamas data, otherwise only load
@@ -90,9 +91,9 @@ commentAttr = {{'comment', comment}};
 
 %% Export to netcdf
 
-instr = {'radar','bahamas','radiometer','dropsondes'};
+% instr = {'radar','bahamas','radiometer','dropsondes'};
 % instr = {'bahamas','radar','radiometer'};
-% instr = {'radar'};
+instr = {'radar'};
 % instr = {'bahamas'};
 % instr = {'lidar'};
 % instr = {'radiometer'};
@@ -199,6 +200,11 @@ if savedata
 
                 % Add coorinates to variables to create georeferenced data
                 addGeoRef(outfile)
+                
+                % Remove clutter from radar data
+                if removeRadarClutter && strcmp(instr{j}, 'radar')
+                    removeClutter(outfile)
+                end 
             else
                 disp(['No ' instr{j} ' data found'])
             end
@@ -292,4 +298,22 @@ function addGeoRef(outfile)
     end
 end
 
-
+function removeClutter(outfile)
+    % Get variable dimension sizes from file
+    [varnames, ~, ~, vardims] = nclistvars(outfile);
+    
+    % Get number of non singleton dimensions for each variable
+    dimNums = sum(cellfun(@(x) numel([x]), vardims), 2);
+    % Loook for variables that are matrices
+    indMat = find(dimNums==2);
+    
+    for i=1:length(indMat)
+        
+        % Read variable data
+        var = ncread(outfile, varnames{indMat(i)});
+        % Remove clutter from data
+        var = removeRadarClutter(var);
+        % Write to nc file again
+        ncwrite(outfile, varnames{indMat(i)}, var)
+    end
+end
