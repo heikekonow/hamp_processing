@@ -1,5 +1,5 @@
 function run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, ...
-                        rollThreshold, radarmask,  removeRadarClutter)
+                        rollThreshold, radarmask,  removeRadarClutter, checkBahamasLoc)
 
 tic 
 %% Switches 
@@ -93,8 +93,8 @@ commentAttr = {{'comment', comment}};
 
 % instr = {'radar','bahamas','radiometer','dropsondes'};
 % instr = {'bahamas','radar','radiometer'};
-instr = {'radar'};
-% instr = {'bahamas'};
+% instr = {'radar'};
+instr = {'bahamas'};
 % instr = {'lidar'};
 % instr = {'radiometer'};
 % instr = {'dropsondes'};
@@ -161,6 +161,7 @@ if savedata
 
 
                 end
+                
 
                 %% Add radar quality mask
                 if radarmask && strcmp(instr{j}, 'radar')
@@ -205,6 +206,10 @@ if savedata
                 if removeRadarClutter && strcmp(instr{j}, 'radar')
                     removeClutter(outfile)
                 end 
+                
+                if checkBahamasLoc && strcmp(instr{j}, 'bahamas')
+                    removeBahamasZeroLoc(outfile)
+                end
             else
                 disp(['No ' instr{j} ' data found'])
             end
@@ -299,7 +304,7 @@ function addGeoRef(outfile)
 end
 
 function removeClutter(outfile)
-    % Get variable dimension sizes from file
+    % Get variable dimension sizes and names from file
     [varnames, ~, ~, vardims] = nclistvars(outfile);
     
     % Get number of non singleton dimensions for each variable
@@ -315,5 +320,38 @@ function removeClutter(outfile)
         var = removeRadarClutter(var);
         % Write to nc file again
         ncwrite(outfile, varnames{indMat(i)}, var)
+    end
+end
+
+function removeBahamasZeroLoc(outfile)
+    % Get variable dimension sizes from file
+    [varnames, ~, ~, vardims] = nclistvars(outfile);
+    
+    % Get number of non singleton dimensions for each variable
+    dimNums = sum(cellfun(@(x) numel([x]), vardims), 2);
+    
+    % Read latitude and longitude data
+    lat = ncread(outfile, 'lat');
+    lon = ncread(outfile, 'lon');
+    
+    indZeros = lat==0 | lon==0;
+    
+    if sum(indZeros) ~= 0
+        for i=1:length(varnames)
+            
+            if ~strcmp(varnames{i}, 'time') && ~strcmp(varnames{i}, 'height')
+                var = ncread(outfile, varnames{i});
+                
+                if dimNums(i)==1
+                    var(indZeros) = nan;
+
+                    ncwrite(outfile, varnames{i}, var);
+                elseif dimNums(i)==2
+                    
+                    var(indZeros, :) = nan;
+                    ncwrite(outfile, varnames{i}, var);
+                end
+            end
+        end
     end
 end
