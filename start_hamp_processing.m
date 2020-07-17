@@ -19,7 +19,6 @@ addRadarMask = false;
 unifyGrid = true;
 quicklooks = false;
 removeRadarClutter = false;
-checkBahamasLoc = true;
 
 %% Set version information
 version = 0;
@@ -61,7 +60,7 @@ end
 if unifyGrid
     % Unify data from bahamas, dropsondes, radar, radiometer onto common grid
     run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, ...
-        rollThreshold, addRadarMask, removeRadarClutter, checkBahamasLoc)
+        rollThreshold, addRadarMask, removeRadarClutter)
 end
 
 if quicklooks

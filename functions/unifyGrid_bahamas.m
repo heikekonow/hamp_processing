@@ -32,7 +32,7 @@ bahamasAlt = ncread(filepath,varNameUse{1});
 
 %% Define grid
 % Define grid for height data
-uniHeight = (0:30:max(bahamasAlt))';
+uniHeight = (0:30:max(bahamasAlt)+30)';
 % Define grid for time data
 uniTime = bahamasTime(1):1/24/60/60:bahamasTime(end);
 % Create empty variable according to unified grid
@@ -193,5 +193,4 @@ clear uniData unitsTemp
 
 save(outfile,'uni*','flightdate','extra_info')
 
-
-
+end

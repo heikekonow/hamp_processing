@@ -1,16 +1,16 @@
 function run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, ...
-                        rollThreshold, radarmask,  removeRadarClutter, checkBahamasLoc)
+                        rollThreshold, radarmask,  removeRadarClutter)
 
 tic 
 %% Switches 
 % usually all set to 1, but can be useful for debugging
 %
 % Unify data onto common grid
-unify = 0;
+unify = 1;
 % Save data to netcdf
 savedata = 1;
 % Redo unified bahamas data, otherwise only load
-redoBahamas = 0;
+redoBahamas = 1;
 
 % Load information on flight dates and campaigns
 [NARVALdates, NARVALdatenum] = flightDates;
@@ -207,9 +207,6 @@ if savedata
                     removeClutter(outfile)
                 end 
                 
-                if checkBahamasLoc && strcmp(instr{j}, 'bahamas')
-                    removeBahamasZeroLoc(outfile)
-                end
             else
                 disp(['No ' instr{j} ' data found'])
             end
@@ -320,38 +317,5 @@ function removeClutter(outfile)
         var = removeRadarClutter(var);
         % Write to nc file again
         ncwrite(outfile, varnames{indMat(i)}, var)
-    end
-end
-
-function removeBahamasZeroLoc(outfile)
-    % Get variable dimension sizes from file
-    [varnames, ~, ~, vardims] = nclistvars(outfile);
-    
-    % Get number of non singleton dimensions for each variable
-    dimNums = sum(cellfun(@(x) numel([x]), vardims), 2);
-    
-    % Read latitude and longitude data
-    lat = ncread(outfile, 'lat');
-    lon = ncread(outfile, 'lon');
-    
-    indZeros = lat==0 | lon==0;
-    
-    if sum(indZeros) ~= 0
-        for i=1:length(varnames)
-            
-            if ~strcmp(varnames{i}, 'time') && ~strcmp(varnames{i}, 'height')
-                var = ncread(outfile, varnames{i});
-                
-                if dimNums(i)==1
-                    var(indZeros) = nan;
-
-                    ncwrite(outfile, varnames{i}, var);
-                elseif dimNums(i)==2
-                    
-                    var(indZeros, :) = nan;
-                    ncwrite(outfile, varnames{i}, var);
-                end
-            end
-        end
     end
 end
