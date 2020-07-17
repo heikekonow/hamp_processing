@@ -7,17 +7,17 @@ contact = 'heike.konow@uni-hamburg.de';
 
 %% Specify time frame for data conversion
 % Start date
-t1 = '20200119';  
+t1 = '20200207';  
 % End date
-t2 = '20200218';
+t2 = '20200207';
 % ! Add flight information to file flight_dates.m if they aren't already in
 % there
 
 %% Processing steps
 correctAttitude = false;
 addRadarMask = false;
-unifyGrid = false;
-quicklooks = true;
+unifyGrid = true;
+quicklooks = false;
 removeRadarClutter = false;
 
 %% Set version information

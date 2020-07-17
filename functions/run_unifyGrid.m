@@ -6,11 +6,11 @@ tic
 % usually all set to 1, but can be useful for debugging
 %
 % Unify data onto common grid
-unify = 0;
+unify = 1;
 % Save data to netcdf
 savedata = 1;
 % Redo unified bahamas data, otherwise only load
-redoBahamas = 0;
+redoBahamas = 1;
 
 % Load information on flight dates and campaigns
 [NARVALdates, NARVALdatenum] = flightDates;
@@ -93,8 +93,8 @@ commentAttr = {{'comment', comment}};
 
 % instr = {'radar','bahamas','radiometer','dropsondes'};
 % instr = {'bahamas','radar','radiometer'};
-instr = {'radar'};
-% instr = {'bahamas'};
+% instr = {'radar'};
+instr = {'bahamas'};
 % instr = {'lidar'};
 % instr = {'radiometer'};
 % instr = {'dropsondes'};
@@ -161,6 +161,7 @@ if savedata
 
 
                 end
+                
 
                 %% Add radar quality mask
                 if radarmask && strcmp(instr{j}, 'radar')
@@ -205,6 +206,7 @@ if savedata
                 if removeRadarClutter && strcmp(instr{j}, 'radar')
                     removeClutter(outfile)
                 end 
+                
             else
                 disp(['No ' instr{j} ' data found'])
             end
@@ -299,7 +301,7 @@ function addGeoRef(outfile)
 end
 
 function removeClutter(outfile)
-    % Get variable dimension sizes from file
+    % Get variable dimension sizes and names from file
     [varnames, ~, ~, vardims] = nclistvars(outfile);
     
     % Get number of non singleton dimensions for each variable
