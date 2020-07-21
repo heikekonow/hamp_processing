@@ -150,8 +150,8 @@ for i=1:length(varEdit)
     
 end
 
-% If data matrix is filled with nans, replace with -Inf
-dataRadar{strcmp(varEdit,'Zg')}(isnan(dataRadar{strcmp(varEdit,'Zg')})) = -Inf;
+% If data matrix is filled with nans, replace with -Inf (set missing value)
+dataRadar{strcmp(varEdit,'Zg')}(isnan(dataRadar{strcmp(varEdit,'Zg')})) = missingvalule;
 
 % Adjust to common time steps
 dataRadarTimeAdjusted = cellfun(@(x) x(:,indRadar),dataRadar,'UniformOutput',false);

@@ -25,7 +25,7 @@
 %------------- BEGIN CODE --------------
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function runRadarAttComb(convertmarker, flightdate)
+function runRadarAttComb(convertmarker, flightdate, missingvalule)
 
 % Set version number
 versionNumber = '0';
@@ -96,7 +96,7 @@ if convertmarker==1
             fprintf('%s\n','')
 
             % Combine radar data with Smart data
-            radarCorrectAtt_smart(RadarFile,versionNumber,radarOutDir,'nolobes')
+            radarCorrectAtt_smart(RadarFile,versionNumber,radarOutDir, missingvalule,'nolobes')
 
         end
     end
@@ -159,7 +159,7 @@ if convertmarker==2
 
             else
                 % Combine radar data with Bahamas data
-                radarCorrectAtt_bahamas(RadarFile,versionNumber,radarOutDir,'nolobes')
+                radarCorrectAtt_bahamas(RadarFile,versionNumber,radarOutDir, missingvalule,'nolobes')
             end
 
         end

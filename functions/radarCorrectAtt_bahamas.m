@@ -53,7 +53,7 @@
 
 %%
 
-function radarCorrectAtt_bahamas(RadarFile,versionNumber,netCDFPath,varargin)
+function radarCorrectAtt_bahamas(RadarFile,versionNumber,netCDFPath, missingvalule, varargin)
 
 %------------- BEGIN CODE --------------
 
@@ -188,8 +188,8 @@ end
 % dataRadar = cellfun(@(x) ncread(RadarFile,x),varEdit,'UniformOutput',false);
 
 
-% If data matrix is filled with nans, replace with -Inf
-dataRadar{strcmp(varEdit,'Zg')}(isnan(dataRadar{strcmp(varEdit,'Zg')})) = -Inf;
+% If data matrix is filled with nans, replace with -Inf (set missing value)
+dataRadar{strcmp(varEdit,'Zg')}(isnan(dataRadar{strcmp(varEdit,'Zg')})) = missingvalule;
 
 % ncdisp(outfile)
 % Adjust to common time steps
