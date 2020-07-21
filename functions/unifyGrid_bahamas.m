@@ -1,4 +1,5 @@
-function [uniTime,uniHeight,uniData] = unifyGrid_bahamas(pathtofolder,flightdate,bahamasVars)
+function [uniTime,uniHeight,uniData] = unifyGrid_bahamas(pathtofolder, flightdate, ...
+                                                         bahamasVars, fillvalue)
 
 interpolate = 1;
 
@@ -36,7 +37,7 @@ uniHeight = (0:30:max(bahamasAlt)+30)';
 % Define grid for time data
 uniTime = bahamasTime(1):1/24/60/60:bahamasTime(end);
 % Create empty variable according to unified grid
-uniData = nan(length(uniHeight),length(uniTime));
+uniData = ones(length(uniHeight),length(uniTime)) .* fillvalue;
 
 extra_info(end+1,:) = {'time','seconds since 1970-01-01 00:00:00 UTC','time','uniTime'};
 extra_info(end+1,:) = {'height','m','height','uniHeight'};
