@@ -7,9 +7,9 @@ contact = 'heike.konow@uni-hamburg.de';
 
 %% Specify time frame for data conversion
 % Start date
-t1 = '20200207';  
+t1 = '20200119';  
 % End date
-t2 = '20200207';
+t2 = '20200119';
 % ! Add flight information to file flight_dates.m if they aren't already in
 % there
 
@@ -23,6 +23,13 @@ removeRadarClutter = false;
 %% Set version information
 version = 0;
 subversion = 5;
+
+%% Missing value
+% Set value for missing value (pixels with no measured signal). This should
+% be different from NaN, since NaN is used as fill value (pixels where no
+% measurements were conducted)
+missingvalule = -Inf;
+fillvalue = NaN; % !!! changes not yet applied in data creation !!!
 
 %%
 % Set threshold for altitude to discard radiometer data
@@ -48,7 +55,7 @@ checkfolderstructure(getPathPrefix, flightdates_use)
 
 if correctAttitude
     % Correct radar data for aircraft attitude
-    runRadarAttitude(flightdates_use)
+    runRadarAttitude(flightdates_use, missingvalule)
 end
 
 if addRadarMask
@@ -60,7 +67,7 @@ end
 if unifyGrid
     % Unify data from bahamas, dropsondes, radar, radiometer onto common grid
     run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, ...
-        rollThreshold, addRadarMask, removeRadarClutter)
+        rollThreshold, addRadarMask, removeRadarClutter, missingvalule, fillvalue)
 end
 
 if quicklooks
