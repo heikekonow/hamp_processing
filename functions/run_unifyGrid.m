@@ -6,11 +6,11 @@ tic
 % usually all set to 1, but can be useful for debugging
 %
 % Unify data onto common grid
-unify = 1;
+unify = 0;
 % Save data to netcdf
 savedata = 1;
 % Redo unified bahamas data, otherwise only load
-redoBahamas = 1;
+redoBahamas = 0;
 
 % Load information on flight dates and campaigns
 [NARVALdates, NARVALdatenum] = flightDates;
@@ -94,12 +94,12 @@ commentAttr = {{'comment', comment}};
 
 %% Export to netcdf
 
-% instr = {'radar','bahamas','radiometer','dropsondes'};
+instr = {'radar','bahamas','radiometer','dropsondes'};
 % instr = {'bahamas','radar','radiometer'};
 % instr = {'radar'};
 % instr = {'bahamas'};
 % instr = {'lidar'};
-instr = {'radiometer'};
+% instr = {'radiometer'};
 % instr = {'dropsondes'};
 
 if savedata
