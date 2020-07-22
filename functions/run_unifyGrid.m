@@ -1,16 +1,16 @@
 function run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, ...
-                        rollThreshold, radarmask,  removeRadarClutter)
+                        rollThreshold, radarmask,  removeRadarClutter, missingvalue, fillvalue)
 
 tic 
 %% Switches 
 % usually all set to 1, but can be useful for debugging
 %
 % Unify data onto common grid
-unify = 1;
+unify = 0;
 % Save data to netcdf
 savedata = 1;
 % Redo unified bahamas data, otherwise only load
-redoBahamas = 1;
+redoBahamas = 0;
 
 % Load information on flight dates and campaigns
 [NARVALdates, NARVALdatenum] = flightDates;
@@ -52,23 +52,26 @@ if unify
         % Unify data on one common grid    
         % Bahamas
         if redoBahamas
-            [uniTime,uniHeight] = unifyGrid_bahamas(pathtofolder,flightdates_use{i},bahamasVars);
+            [uniTime,uniHeight] = unifyGrid_bahamas(pathtofolder, flightdates_use{i}, ...
+                                                    bahamasVars, fillvalue);
         else
             filepath = listFiles([pathtofolder 'all_mat/*bahamas' flightdates_use{i} '*'],'full');
             load(filepath{end},'uniTime','uniHeight')
         end
 
         % Create empty variable according to unified grid
-        uniData = nan(length(uniHeight),length(uniTime));
+        uniData = ones(length(uniHeight),length(uniTime)) .* fillvalue;
 
         % Round time to seconds to avoid numerical deviations 
         uniTime = dateround(uniTime', 'second');
         
         % Dropsondes
-        unifyGrid_dropsondes(pathtofolder,flightdates_use{i},uniHeight,uniTime,uniData,sondeVars)
+        unifyGrid_dropsondes(pathtofolder, flightdates_use{i}, uniHeight, uniTime, ...
+                             uniData, sondeVars, fillvalue)
 
         % Radiometer
-        unifyGrid_radiometer(pathtofolder,flightdates_use{i},uniTime,radiometerVars, altitudeThreshold, rollThreshold)
+        unifyGrid_radiometer(pathtofolder,flightdates_use{i},uniTime,radiometerVars,...
+            altitudeThreshold, rollThreshold, missingvalue, fillvalue)
         
         % Radar
         unifyGrid_radar(pathtofolder,flightdates_use{i},uniHeight,uniTime,radarVars)
@@ -91,10 +94,10 @@ commentAttr = {{'comment', comment}};
 
 %% Export to netcdf
 
-% instr = {'radar','bahamas','radiometer','dropsondes'};
+instr = {'radar','bahamas','radiometer','dropsondes'};
 % instr = {'bahamas','radar','radiometer'};
 % instr = {'radar'};
-instr = {'bahamas'};
+% instr = {'bahamas'};
 % instr = {'lidar'};
 % instr = {'radiometer'};
 % instr = {'dropsondes'};
@@ -197,12 +200,15 @@ if savedata
                 ncDims = replaceVarName(ncDims,instr{j});
                 ncVarNames = replaceVarName(ncVarNames,instr{j});
 
-                writeNetCDF(outfile,ncVarNames,ncDims,varData,varInfo,globAtt, mfilename)
+                writeNetCDF(outfile,ncVarNames,ncDims,varData,varInfo,globAtt, mfilename, fillvalue)
 
-                % Add coorinates to variables to create georeferenced data
+                %% Add coorinates to variables to create georeferenced data
                 addGeoRef(outfile)
                 
-                % Remove clutter from radar data
+                %% Add fill value/missing value information
+                addFillMissing(outfile, missingvalue)
+                
+                %% Remove clutter from radar data
                 if removeRadarClutter && strcmp(instr{j}, 'radar')
                     removeClutter(outfile)
                 end 
@@ -317,5 +323,26 @@ function removeClutter(outfile)
         var = removeRadarClutter(var);
         % Write to nc file again
         ncwrite(outfile, varnames{indMat(i)}, var)
+    end
+end
+
+function addFillMissing(outfile, missingvalue)
+    
+    % Get variable dimension sizes and names from file
+    [varnames, ~, ~, vardims] = nclistvars(outfile);
+    [dimnames] = nclistdims(outfile);
+    
+    % Get number of non singleton dimensions for each variable
+    dimNums = sum(cellfun(@(x) numel([x]), vardims), 2);
+%     % Loook for variables that are matrices
+%     indMat = find(dimNums==2);
+    
+    for i=1:length(varnames)
+        if ~any(strcmp(varnames{i}, dimnames)) && dimNums(i)~=0
+        
+            % Add attributes to variables
+            ncwriteatt(outfile, varnames{i}, 'missing_value', missingvalue)
+%             ncwriteatt(outfile, varnames{i}, 'FillValue', fillvalue)
+        end
     end
 end

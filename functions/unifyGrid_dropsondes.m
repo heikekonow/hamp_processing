@@ -41,7 +41,8 @@
 
 %------------- BEGIN CODE --------------
 
-function unifyGrid_dropsondes(pathtofolder,flightdate,uniHeight,uniTime,uniData,sondeVars)
+function unifyGrid_dropsondes(pathtofolder, flightdate, uniHeight, uniTime, ...
+                              uniData, sondeVars, fillvalue)
 
 % For debugging: set testPlots to true to check interpolated and original
 % temperature profile from sonde number f
@@ -177,7 +178,7 @@ if ~isempty(filename)
                      index = setdiff(1:length(data{j}),index);
                      
                      % Set data at missing heights to nan
-                     data{j}(index) = NaN;
+                     data{j}(index) = fillvalue;
                      
                      % Interplate profile data
                      [dataInt{j}, interpolate_flag{j}] = ...

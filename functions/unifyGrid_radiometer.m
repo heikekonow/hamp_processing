@@ -1,4 +1,5 @@
-function unifyGrid_radiometer(pathtofolder,flightdate,uniTime,radiometerVars, altitudeThreshold, rollThreshold)
+function unifyGrid_radiometer(pathtofolder, flightdate, uniTime, radiometerVars, ...
+                              altitudeThreshold, rollThreshold, missingvalue, fillvalue)
 
 interpolate = 1;
 
@@ -103,7 +104,7 @@ for i=1:length(radiometerVars)
         longNameTemp = 'Brightness temperature';
         
         % Preallocate array
-        uniDataRadiometer = nan(size(data,1),length(uniTime));
+        uniDataRadiometer = ones(size(data,1),length(uniTime)) .* fillvalue;
         
         % Catch unusual cases where first time entry is nan
         if isnan(radiometerTime(1))
@@ -221,7 +222,7 @@ for i=1:length(radiometerVars)
         % If no file with data from this campaign has been found
         if isempty(previousfile)
             % Set freqency to missing value
-            freq = -888;
+            freq = missingvalue;
             
         else
             % Read frequencies from previous file
@@ -232,10 +233,10 @@ for i=1:length(radiometerVars)
         %% Add missing values
 
         % Fill data array with missing value
-        uniDataRadiometer = ones(size(freq, 1), size(uniTime, 1)) .* -888;
+        uniDataRadiometer = ones(size(freq, 1), size(uniTime, 1)) .* missingvalue;
 
         % Fill interpolate flag with missing value
-        interpolate_flag{i} = ones(size(freq, 1), size(uniTime, 1)) .* -888;
+        interpolate_flag{i} = ones(size(freq, 1), size(uniTime, 1)) .* missingvalue;
         
     end
     
