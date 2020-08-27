@@ -6,11 +6,11 @@ tic
 % usually all set to 1, but can be useful for debugging
 %
 % Unify data onto common grid
-unify = 0;
+unify = 1;
 % Save data to netcdf
 savedata = 1;
 % Redo unified bahamas data, otherwise only load
-redoBahamas = 0;
+redoBahamas = 1;
 
 % Load information on flight dates and campaigns
 [NARVALdates, NARVALdatenum] = flightDates;

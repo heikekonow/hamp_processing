@@ -15,20 +15,20 @@ t2 = '20200218';
 
 %% Processing steps
 correctAttitude = false;
-addRadarMask = false;
+addRadarMask = true;
 unifyGrid = true;
-quicklooks = false;
+quicklooks = true;
 removeRadarClutter = true;
 
 %% Set version information
 version = 0;
-subversion = 5;
+subversion = 6;
 
 %% Missing value
 % Set value for missing value (pixels with no measured signal). This should
 % be different from NaN, since NaN is used as fill value (pixels where no
 % measurements were conducted)
-missingvalule = -Inf;
+missingvalule = -888;
 fillvalue = NaN; % !!! changes not yet applied in data creation !!!
 
 %%
