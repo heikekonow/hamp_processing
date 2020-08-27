@@ -128,7 +128,12 @@ datetick('x','HH:MM')
 ylabel('BT (K), 183')
 finetunefigures
 % ylim([220 320])
-ylim([min(min(BT_183))-10 max(max(BT_183))+40])
+yl = [min(min(BT_183))-10 max(max(BT_183))+40];
+if any(isinf(yl))
+    ylim([150 300])
+else
+    ylim(yl)
+end
 l = cellstr(num2str(f_183));
 plotLegendAsColoredText(gca,l,[0.15 0.55],0.03)
 
