@@ -1,4 +1,4 @@
-clear; close all
+close all
 
 flightdate = '20200126';
 
@@ -6,27 +6,43 @@ sdnSecond = 1/24/60/60;
 
 
 testPlot = true;
+readNew = true;
+opendap = true;
 
 %% Read radar data
-radarfile = listFiles([getPathPrefix getCampaignFolder(flightdate) 'radar/*' flightdate '*'], 'full', 'mat');
+if readNew
+    
+    
+    radarfile = listFiles([getPathPrefix getCampaignFolder(flightdate) 'radar/*' flightdate '*'], 'full', 'mat');
 
-Zg = ncread(radarfile, 'Zg');
-dBZ = 10 .* log10(Zg);
+    Zg = ncread(radarfile, 'Zg');
+    dBZ = 10 .* log10(Zg);
 
-range = ncread(radarfile, 'range');
-timeRadar = ncread(radarfile, 'time');
-
-%% Read bahamas data
-bahamasfile = listFiles([getPathPrefix getCampaignFolder(flightdate) 'bahamas/*' flightdate '*'], 'full', 'mat');
-timeBahamas = ncread(bahamasfile, 'TIME');
-roll = ncread(bahamasfile, 'IRS_PHI');
-pitch = ncread(bahamasfile, 'IRS_THE');
-alt = ncread(bahamasfile, 'IRS_ALT');
+    range = ncread(radarfile, 'range');
+    timeRadar = ncread(radarfile, 'time');
 
 
+    %% Read bahamas data
+    if opendap
+        bahamasfile = ['https://macsserver.physik.uni-muenchen.de/products/dap/eurec4a/nav/EUREC4A_HALO_BAHAMAS-SPECMACS-100Hz-final_' flightdate 'a.nc'];
+        
+        timeBahamas = ncread(bahamasfile, 'time') .* 1e-6;
+        roll = ncread(bahamasfile, 'roll');
+        pitch = ncread(bahamasfile, 'pitch');
+        alt = ncread(bahamasfile, 'height');
+    else
+        bahamasfile = listFiles([getPathPrefix getCampaignFolder(flightdate) 'bahamas/*' flightdate '*'], 'full', 'mat');
+
+        timeBahamas = ncread(bahamasfile, 'TIME');
+        roll = ncread(bahamasfile, 'IRS_PHI');
+        pitch = ncread(bahamasfile, 'IRS_THE');
+        alt = ncread(bahamasfile, 'IRS_ALT');
+    end
+end
 
 %% Plot data
 fh = figure(1);
+fh.Position = [745 497 934 453];
 plotComp(timeRadar, range, dBZ, timeBahamas, roll, pitch, alt)
 
 disp('----------------------')
@@ -52,6 +68,11 @@ elseif strcmp(s, 'n')
     disp('')
     disp('----------------------')
     prompt = 'How many seconds should the radar data be shifted? (negative: to the left, positive: to the right)';
+    tOffset = str2double(input(prompt,'s'));
+    xl = xlim;
+    yl = ylim;
+elseif ~isempty(regexp(s, '[0-9]', 'once')) 
+    
     tOffset = str2double(input(prompt,'s'));
     xl = xlim;
     yl = ylim;
@@ -88,6 +109,13 @@ while testPlot
         tOffset = tOffset + str2double(input(prompt,'s'));
         xl = xlim;
         yl = ylim;
+        
+    elseif ~isempty(regexp(s, '[0-9]', 'once')) 
+    
+        tOffset = str2double(input(prompt,'s'));
+        xl = xlim;
+        yl = ylim;
+
     else
         error('Please provide ''y'' or ''n'' as answer')
     end
