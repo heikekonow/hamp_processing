@@ -1,13 +1,14 @@
 close all
 
-flightdate = '20200119';
+flightdate = '20200218';
 readNew = true;
 
 sdnSecond = 1/24/60/60;
 
 
 testPlot = true;
-opendap = true;
+opendap = false;
+highfreq = true;
 
 tOffset = 0;
 
@@ -27,6 +28,13 @@ if readNew
     %% Read bahamas data
     if opendap
         bahamasfile = ['https://macsserver.physik.uni-muenchen.de/products/dap/eurec4a/nav/EUREC4A_HALO_BAHAMAS-SPECMACS-100Hz-final_' flightdate 'a.nc'];
+        
+        timeBahamas = ncread(bahamasfile, 'time') .* 1e-6;
+        roll = ncread(bahamasfile, 'roll');
+        pitch = ncread(bahamasfile, 'pitch');
+        alt = ncread(bahamasfile, 'height');
+    elseif highfreq
+        bahamasfile = listFiles([getPathPrefix getCampaignFolder(flightdate) 'bahamas_100Hz/*' flightdate '*'], 'full', 'mat');
         
         timeBahamas = ncread(bahamasfile, 'time') .* 1e-6;
         roll = ncread(bahamasfile, 'roll');
@@ -226,18 +234,27 @@ function plotComp(timeRadar, range, dBZ, timeBahamas, roll, pitch, alt, tOffset)
     timeBahamas = unixtime2sdn(timeBahamas);
     
     
-    imagesc(timeRadar, range, dBZ)
+%     imagesc(timeRadar, range, dBZ)
+    surface(timeRadar, range, dBZ, 'EdgeColor', 'none')
     addWhiteToColormap
     
     hold on
     
+    maxdBZ = max(max(dBZ(~isinf(dBZ))));
+    
     if exist('tOffset', 'var')
         tOffset = 1/24/60/60 .* tOffset;
         
-        plot(timeBahamas, sfcCalc, 'x', 'Color', [.7 .7 .7])
-        plot(timeBahamas-tOffset, sfcCalc, 'xk')
+%         plot(timeBahamas, sfcCalc, 'x', 'Color', [.7 .7 .7])
+%         plot(timeBahamas-tOffset, sfcCalc, 'x-k')
+        
+        plot3(timeBahamas, sfcCalc, repmat(maxdBZ, length(timeBahamas), 1),...
+            'x', 'Color', [.7 .7 .7])
+        plot3(timeBahamas-tOffset, sfcCalc, repmat(maxdBZ, length(timeBahamas), 1),...
+            'x-k')
     else
-        plot(timeBahamas, sfcCalc, 'xk')
+        plot3(timeBahamas, sfcCalc, repmat(maxdBZ, length(timeBahamas), 1),...
+            'x-k')
     end
     
     datetickzoom('x', 'HH:MM:SS')

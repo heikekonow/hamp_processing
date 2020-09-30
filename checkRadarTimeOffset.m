@@ -151,18 +151,27 @@ function plotComp(timeRadar, range, dBZ, timeBahamas, roll, pitch, alt, tOffset)
     timeBahamas = unixtime2sdn(timeBahamas);
     
     
-    imagesc(timeRadar, range, dBZ)
+%     imagesc(timeRadar, range, dBZ)
+    surface(timeRadar, range, dBZ, 'EdgeColor', 'none')
     addWhiteToColormap
     
     hold on
     
+    maxdBZ = max(max(dBZ(~isinf(dBZ))));
+    
     if exist('tOffset', 'var')
         tOffset = 1/24/60/60 .* tOffset;
         
-        plot(timeBahamas, sfcCalc, 'x', 'Color', [.7 .7 .7])
-        plot(timeBahamas-tOffset, sfcCalc, 'xk')
+%         plot(timeBahamas, sfcCalc, 'x', 'Color', [.7 .7 .7])
+%         plot(timeBahamas-tOffset, sfcCalc, 'xk')
+        
+        plot3(timeBahamas, sfcCalc, repmat(maxdBZ, length(timeBahamas), 1),...
+            'x', 'Color', [.7 .7 .7])
+        plot3(timeBahamas-tOffset, sfcCalc, repmat(maxdBZ, length(timeBahamas), 1),...
+            'x-k')
     else
-        plot(timeBahamas, sfcCalc, 'xk')
+        plot3(timeBahamas, sfcCalc, repmat(maxdBZ, length(timeBahamas), 1),...
+            'x-k')
     end
     
     datetickzoom('x', 'HH:MM:SS')
