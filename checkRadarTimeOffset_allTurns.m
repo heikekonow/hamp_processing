@@ -1,6 +1,6 @@
-%% checkRadarTimeOffset
+%% checkRadarTimeOffset_allTurns
 %   checkRadarTimeOffset - code for assessing time offsets betweeen radar
-%                          and aircraft time
+%                          and aircraft time for multiple turns
 %
 %       Code to assess any time offsets between radar and bahamas data by
 %       investigating aircraft turns. The surface echo from the radar is
@@ -8,6 +8,9 @@
 %       attitude data. If both visually match, there is no time difference.
 %       Otherwise, this script helps identifying the necessary offset to
 %       match both data sets.
+%
+%       You can analyze and get time offsets for multiple turns during one
+%       flight
 %
 %       Set a date to investigate in the beginning with 'flightdate'.
 %
@@ -21,13 +24,15 @@
 %
 %
 %
-%   Syntax:  checkRadarTimeOffset
+%
+%   Syntax:  checkRadarTimeOffset_allTurns
 %
 %   Inputs:
 %       none; specify processing mode in beginning of file
 %
 %   Outputs:
-%       none; time offset information to be added to timeOffsetLookup.m
+%       none; txt file and figure with offset values in subfolder 
+%             radarOffsetAnalysis
 %
 %
 %
