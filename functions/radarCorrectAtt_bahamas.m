@@ -53,7 +53,7 @@
 
 %%
 
-function radarCorrectAtt_bahamas(RadarFile,versionNumber,netCDFPath, missingvalule, varargin)
+function radarCorrectAtt_bahamas(RadarFile,versionNumber,netCDFPath, missingvalue, varargin)
 
 %------------- BEGIN CODE --------------
 
@@ -188,8 +188,16 @@ end
 % dataRadar = cellfun(@(x) ncread(RadarFile,x),varEdit,'UniformOutput',false);
 
 
+% Copy Z for later dBZ calculation
+Zcopy = dataRadar{strcmp(varEdit,'Zg')};
+Zcopy(isnan(dataRadar{strcmp(varEdit,'Zg')})) = -Inf;
+
 % If data matrix is filled with nans, replace with -Inf (set missing value)
-dataRadar{strcmp(varEdit,'Zg')}(isnan(dataRadar{strcmp(varEdit,'Zg')})) = missingvalule;
+dataRadar{strcmp(varEdit,'Zg')}(isnan(dataRadar{strcmp(varEdit,'Zg')})) = -Inf;
+
+for i=1:length(varEdit)
+    dataRadar{i}(isnan(dataRadar{i})) = -Inf;
+end
 
 % ncdisp(outfile)
 % Adjust to common time steps
@@ -241,6 +249,9 @@ end
 % Regrid radar data to acount for flight attitudes
 dataRadarCorr = cellfun(@(x) regriddFlightAngles(range,rollAngle,pitchAngle,hGPS,zGrid,x),...
                     dataRadarSideLobes,'UniformOutput',false);
+                
+% Cooz Zg variable for later use in dBZ calculation
+Zg = dataRadarCorr{strcmp(varEdit,'Zg')};
 
 %% Convert Time
 
@@ -383,8 +394,10 @@ for i=1:length(varEdit)
     schemaCopy.Dimensions(strcmp({schemaCopy.Dimensions.Name},'height')).Length = length(verticalCoordinate);
     % Write schema to new file
     ncwriteschema(outfile,schemaCopy);
-%     % Read data from orig file
-%     dataCopy = ncread(RadarFile,varBahamas{i});
+    
+    % Change missing value in data from -Inf to specified in function call
+    dataRadarCorr{i}(isinf(dataRadarCorr{i})) = missingvalue;
+    
     % Write data to outfile
     ncwrite(outfile,varEdit{i},single(dataRadarCorr{i}));
 end
@@ -393,8 +406,9 @@ end
 fprintf('%s\n','')
 disp('Calculate dBZ')
 if ismember('Zg',varEdit)
-    % Rename Zg variable
-    Zg = dataRadarCorr{strcmp(varEdit,'Zg')};
+    
+    
+%     Zg(Zg==missingvalue) = -Inf;
     % Calculate dBZ
     dBZg = 10 .* log10(Zg);
     
@@ -403,6 +417,9 @@ if ismember('Zg',varEdit)
     dBZg = real(dBZg);
     % And convert positive infinity back to negative infinity
     dBZg(isinf(dBZg)) = -Inf;
+    
+    % Replace -Inf with missingvalue
+%     dBZg(isinf(dBZg)) = missingvalue;
     
     % Copy netCDF scheme
     schemaCopy = ncinfo(outfile,'Zg');
@@ -420,8 +437,12 @@ if ismember('Zg',varEdit)
     % Write schema to new file
     ncwriteschema(outfile,schemaCopy);
     
+    % Apply missing value to dBZ variable
+    dBZg(isinf(dBZg)) = missingvalue;
+    
     % Write data to outfile
-    ncwrite(outfile,schemaCopy.Name,single(dBZg));
+%     ncwrite(outfile,schemaCopy.Name,single(dBZg));
+    ncwrite(outfile,schemaCopy.Name,dBZg);
 else
     fprintf('%s\n','')
     disp('No Reflectivity Z found. Skipping dBZ calculation...')

@@ -94,6 +94,12 @@ lon = ncread(bahamasfile,'lon');
 
 if ncVarInFile(radarfile,'dBZ')
     dBZ = ncread(radarfile,'dBZ');
+    
+    % Apply fill value and missing value information
+    mVal = ncreadatt(radarfile, 'dBZ', 'missing_value');
+    fVal = ncreadatt(radarfile, 'dBZ', '_FillValue');
+    
+    dBZ(dBZ==mVal|dBZ==fVal) = nan;
 end
 
 %%
