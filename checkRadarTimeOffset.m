@@ -39,7 +39,7 @@
 %   September 2020; Last revision: November 2020
 
 %------------- BEGIN CODE --------------
-
+%% Input
 
 % --------- Input ----------- %
 % Set flight date
