@@ -210,7 +210,7 @@ if savedata
                 
                 %% Remove clutter from radar data
                 if removeRadarClutter && strcmp(instr{j}, 'radar')
-                    removeClutter(outfile)
+                    removeClutter(outfile, missingvalue, fillvalue)
                 end 
                 
             else
@@ -306,7 +306,7 @@ function addGeoRef(outfile)
     end
 end
 
-function removeClutter(outfile)
+function removeClutter(outfile, missingvalue, fillvalue)
     % Get variable dimension sizes and names from file
     [varnames, ~, ~, vardims] = nclistvars(outfile);
     
@@ -320,7 +320,7 @@ function removeClutter(outfile)
         % Read variable data
         var = ncread(outfile, varnames{indMat(i)});
         % Remove clutter from data
-        var = removeRadarClutter(var);
+        var = removeRadarClutter(var, missingvalue, fillvalue);
         % Write to nc file again
         ncwrite(outfile, varnames{indMat(i)}, var)
     end

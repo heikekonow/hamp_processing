@@ -17,7 +17,7 @@ t2 = '20200218';
 correctAttitude = true;
 addRadarMask = true;
 unifyGrid = true;
-quicklooks = true;
+quicklooks = false;
 removeRadarClutter = true;
 
 %% Set version information
