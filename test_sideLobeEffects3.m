@@ -54,16 +54,25 @@ sideLobeMask = geoMask & rollIndMat;
 zMasked = z;
 zMasked(sideLobeMask) = nan;
 
+ldrMasked = ldr;
+ldrMasked(sideLobeMask) = nan;
+
+rmsMasked = rms;
+rmsMasked(sideLobeMask) = nan;
+
+snrMasked = snr;
+snrMasked(sideLobeMask) = nan;
+
 
 %%
 
-for i=1:size(xl, 1)
+for i=1:3%size(xl, 1)
     
     figure
-    set(gcf, 'Position', [193 52 923 903])
+    set(gcf, 'Position', [17 202 923 903])
 
 
-    subplot(5,1,1)
+    subplot(4,1,1)
     %
     ph = pcolor(t, h, z);
     ph.EdgeColor = 'none';
@@ -84,9 +93,9 @@ for i=1:size(xl, 1)
     ah.XTickLabel = [];
 
 
-    subplot(5,1,2)
+    subplot(4,1,2)
     %
-    ph = pcolor(t, h, ldrM);
+    ph = pcolor(t, h, ldr);
     ph.EdgeColor = 'none';
     title(['LDR > ' num2str(ldrThres)])
     set(gca, 'YDir', 'normal')
@@ -105,9 +114,9 @@ for i=1:size(xl, 1)
     ah.XTickLabel = [];
 
 
-    subplot(5,1,3)
+    subplot(4,1,3)
     %
-    ph = pcolor(t, h, rmsM);
+    ph = pcolor(t, h, rms);
     ph.EdgeColor = 'none';
     title(['RMS > ' num2str(rmsThres)])
     set(gca, 'YDir', 'normal')
@@ -126,9 +135,9 @@ for i=1:size(xl, 1)
     ah.XTickLabel = [];
 
 
-    subplot(5,1,4)
+    subplot(4,1,4)
     %
-    ph = pcolor(t, h, double(sideLobeMask));
+    ph = pcolor(t, h, snr);
     ph.EdgeColor = 'none';
     title('comb. mask')
     set(gca, 'YDir', 'normal')
@@ -145,17 +154,86 @@ for i=1:size(xl, 1)
     finetunefigures
     ah = gca;
     ah.XTickLabel = [];
+    
+    
+    %%%%%%
+    figure
+    set(gcf, 'Position', [941 202 923 903])
 
-    subplot(5,1,5)
+
+    subplot(4,1,1)
     %
     ph = pcolor(t, h, zMasked);
     ph.EdgeColor = 'none';
-    title('dBZ, masked')
+    title('dBZ')
     set(gca, 'YDir', 'normal')
     addWhiteToColormap
     xlim(xl{i})
     ylim([0 2500])
     caxis([-38 30])
+    datetick('x', 'HH:MM:SS' ,'keeplimits')
+    % colorbar
+    hold on
+    plot(t, rollInd, 'xk')
+    hold off
+    ylabel('Height (m)')
+    finetunefigures
+    ah = gca;
+    ah.XTickLabel = [];
+
+
+    subplot(4,1,2)
+    %
+    ph = pcolor(t, h, ldrMasked);
+    ph.EdgeColor = 'none';
+    title(['LDR > ' num2str(ldrThres)])
+    set(gca, 'YDir', 'normal')
+    addWhiteToColormap
+    xlim(xl{i})
+    ylim([0 2500])
+    caxis([0 2])
+    datetick('x', 'HH:MM:SS' ,'keeplimits')
+    % colorbar
+    hold on
+    plot(t, rollInd, 'xk')
+    hold off
+    ylabel('Height (m)')
+    finetunefigures
+    ah = gca;
+    ah.XTickLabel = [];
+
+
+    subplot(4,1,3)
+    %
+    ph = pcolor(t, h, rmsMasked);
+    ph.EdgeColor = 'none';
+    title(['RMS > ' num2str(rmsThres)])
+    set(gca, 'YDir', 'normal')
+    addWhiteToColormap
+    xlim(xl{i})
+    ylim([0 2500])
+    caxis([0 2])
+    datetick('x', 'HH:MM:SS' ,'keeplimits')
+    % colorbar
+    hold on
+    plot(t, rollInd, 'xk')
+    hold off
+    ylabel('Height (m)')
+    finetunefigures
+    ah = gca;
+    ah.XTickLabel = [];
+
+
+    subplot(4,1,4)
+    %
+    ph = pcolor(t, h, snrMasked);
+    ph.EdgeColor = 'none';
+    title('comb. mask')
+    set(gca, 'YDir', 'normal')
+    addWhiteToColormap
+    xlim(xl{i})
+    ylim([0 2500])
+    caxis([0 2])
     datetick('x', 'HH:MM:SS' ,'keeplimits')
     % colorbar
     hold on
