@@ -28,7 +28,7 @@ subversion = 7;
 % Set value for missing value (pixels with no measured signal). This should
 % be different from NaN, since NaN is used as fill value (pixels where no
 % measurements were conducted)
-missingvalule = -888;
+missingvalue = -888;
 fillvalue = NaN; % !!! changes not yet applied in data creation !!!
 
 %%
@@ -55,7 +55,7 @@ checkfolderstructure(getPathPrefix, flightdates_use)
 
 if correctAttitude
     % Correct radar data for aircraft attitude
-    runRadarAttitude(flightdates_use, missingvalule)
+    runRadarAttitude(flightdates_use, missingvalue)
 end
 
 if addRadarMask
@@ -67,7 +67,7 @@ end
 if unifyGrid
     % Unify data from bahamas, dropsondes, radar, radiometer onto common grid
     run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, ...
-        rollThreshold, addRadarMask, removeClutter, missingvalule, fillvalue)
+        rollThreshold, addRadarMask, removeClutter, missingvalue, fillvalue)
 end
 
 if quicklooks
