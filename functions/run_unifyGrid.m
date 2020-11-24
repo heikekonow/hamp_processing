@@ -408,6 +408,7 @@ function removeSideLobes(outfile, rollThreshold, fillvalue, radarmask)
             
     end
     
+    % Add information to radar data mask
     if radarmask
         
         % Read radar data flag
