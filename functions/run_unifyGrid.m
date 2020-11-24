@@ -1,5 +1,5 @@
 function run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, ...
-                        rollThreshold, radarmask,  radarClutter, missingvalue, fillvalue)
+                        rollThreshold, radarmask,  radarClutter, missingvalue, fillvalue, filenameprefix)
 
 tic 
 %% Switches 
@@ -113,7 +113,7 @@ if savedata
             disp(['Processing data from: ' instr{j}])
             
              % Define in- and outfile
-            outfile = [pathtofolder 'all_nc/' instr{j} '_' flightdates_use{i} ...
+            outfile = [pathtofolder 'all_nc/' filenameprefix instr{j} '_' flightdates_use{i} ...
                         '_v' num2str(version) '.' num2str(subversion) '.nc'];
             infile = [pathtofolder 'all_mat/uniData_' instr{j} flightdates_use{i} '.mat'];
             

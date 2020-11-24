@@ -5,11 +5,18 @@ comment = 'Preliminary data! Data is uncalibrated. Only use for preliminary work
 % Specify contact information
 contact = 'heike.konow@uni-hamburg.de';
 
+%% Output file name prefix
+% The usual file name will follow the format: 
+% <instrument>_<date>_v<version-number>.nc
+% An additional file name prefix can be specified here (e.g. for EUREC4A),
+% if no prefix is necessary, set to empty string ('')
+filenameprefix = 'EUREC4A_HALO_';
+
 %% Specify time frame for data conversion
 % Start date
-t1 = '20200119';  
+t1 = '20200130';  
 % End date
-t2 = '20200218';
+t2 = '20200130';
 % ! Add flight information to file flight_dates.m if they aren't already in
 % there
 
@@ -67,7 +74,7 @@ end
 if unifyGrid
     % Unify data from bahamas, dropsondes, radar, radiometer onto common grid
     run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, ...
-        rollThreshold, addRadarMask, removeClutter, missingvalue, fillvalue)
+        rollThreshold, addRadarMask, removeClutter, missingvalue, fillvalue, filenameprefix)
 end
 
 if quicklooks
