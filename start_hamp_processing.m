@@ -7,22 +7,22 @@ contact = 'heike.konow@uni-hamburg.de';
 
 %% Specify time frame for data conversion
 % Start date
-t1 = '20200205';  
+t1 = '20200119';  
 % End date
-t2 = '20200205';
+t2 = '20200218';
 % ! Add flight information to file flight_dates.m if they aren't already in
 % there
 
 %% Processing steps
-correctAttitude = true;
-addRadarMask = false;
-unifyGrid = false;
-quicklooks = false;
-removeRadarClutter = false;
+correctAttitude = false;
+addRadarMask = true;
+unifyGrid = true;
+quicklooks = true;
+removeClutter = true;
 
 %% Set version information
 version = 0;
-subversion = 6;
+subversion = 7;
 
 %% Missing value
 % Set value for missing value (pixels with no measured signal). This should
@@ -67,7 +67,7 @@ end
 if unifyGrid
     % Unify data from bahamas, dropsondes, radar, radiometer onto common grid
     run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, ...
-        rollThreshold, addRadarMask, removeRadarClutter, missingvalule, fillvalue)
+        rollThreshold, addRadarMask, removeClutter, missingvalule, fillvalue)
 end
 
 if quicklooks
