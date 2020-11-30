@@ -1,5 +1,5 @@
 function run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, ...
-                        rollThreshold, radarmask,  removeRadarClutter, missingvalue, fillvalue)
+                        rollThreshold, radarmask,  radarClutter, missingvalue, fillvalue, filenameprefix)
 
 tic 
 %% Switches 
@@ -113,7 +113,7 @@ if savedata
             disp(['Processing data from: ' instr{j}])
             
              % Define in- and outfile
-            outfile = [pathtofolder 'all_nc/' instr{j} '_' flightdates_use{i} ...
+            outfile = [pathtofolder 'all_nc/' filenameprefix instr{j} '_' flightdates_use{i} ...
                         '_v' num2str(version) '.' num2str(subversion) '.nc'];
             infile = [pathtofolder 'all_mat/uniData_' instr{j} flightdates_use{i} '.mat'];
             
@@ -208,8 +208,14 @@ if savedata
                 %% Add fill value/missing value information
                 addFillMissing(outfile, missingvalue)
                 
+                %% Remove side lobes during turns
+                if strcmp(instr{j}, 'radar')
+                    removeSideLobes(outfile, rollThreshold, fillvalue, radarmask)
+                end
+                
                 %% Remove clutter from radar data
-                if removeRadarClutter && strcmp(instr{j}, 'radar')
+
+                if radarClutter && strcmp(instr{j}, 'radar')
                     removeClutter(outfile, missingvalue, fillvalue)
                 end 
                 
@@ -312,7 +318,7 @@ function removeClutter(outfile, missingvalue, fillvalue)
     
     % Get number of non singleton dimensions for each variable
     dimNums = sum(cellfun(@(x) numel([x]), vardims), 2);
-    % Loook for variables that are matrices
+    % Look for variables that are matrices
     indMat = find(dimNums==2);
     
     for i=1:length(indMat)
@@ -344,5 +350,82 @@ function addFillMissing(outfile, missingvalue)
             ncwriteatt(outfile, varnames{i}, 'missing_value', missingvalue)
 %             ncwriteatt(outfile, varnames{i}, 'FillValue', fillvalue)
         end
+    end
+end
+
+function removeSideLobes(outfile, rollThreshold, fillvalue, radarmask)
+    
+    % Get variable dimension sizes and names from file
+    [varnames, ~, ~, vardims] = nclistvars(outfile);
+    
+    % Read flight date from file
+    flightdate = num2str(ncread(outfile, 'date'));
+    
+    % Read array with height of radar range gates
+    h = ncread(outfile, 'height');
+    
+    % Read roll, pitch, altitude from Bahamas
+    roll = readdata(flightdate, 'roll');
+    pitch = readdata(flightdate, 'pitch');
+    alt = readdata(flightdate, 'altitude');
+    
+    % Generate matrix that indicates turns based on roll threshold
+    rollIndMat = abs(roll)>rollThreshold;
+    rollIndMat = repmat(rollIndMat', size(h, 1), 1);
+    
+    % Calculate height affected by side lobes during turns
+    hSidelobe = alt .* (1 ./ cosd(roll) ./ cosd(pitch) - 1) + 60;
+    
+    % Convert side lobe height to matrix
+    hSidelobeMat = repmat(hSidelobe', size(h, 1), 1);
+    
+    % Convert height array to matrix
+    heightMat = repmat(h, 1, size(hSidelobeMat,2));
+    
+    % Mask derived from geometry
+    geoMask = heightMat<hSidelobeMat;
+    
+    % Mask for side lobe effects
+    sideLobeMask = geoMask & rollIndMat;
+    
+    % Get number of non singleton dimensions for each variable
+    dimNums = sum(cellfun(@(x) numel([x]), vardims), 2);
+    
+    % Look for variables that are matrices
+    indMat = find(dimNums==2);
+    
+    % Loop all 2d variables
+    for i=1:length(indMat)
+            
+            % Read variable data
+            var = ncread(outfile, varnames{indMat(i)});
+            
+            % Replace side lobes in data with fill value
+            varMasked = var;
+            varMasked(sideLobeMask) = fillvalue;
+            
+            % Write to nc file again
+            ncwrite(outfile, varnames{indMat(i)}, varMasked)
+            
+    end
+    
+    % Add information to radar data mask
+    if radarmask
+        
+        % Read radar data flag
+        flag = ncread(outfile, 'data_flag');
+        
+        % Add side lobes to flag
+        flag(sideLobeMask) = 5;
+        
+        % Write to nc file again
+        ncwrite(outfile, 'data_flag', flag)
+        
+        % Read flag's long name attribute
+        longNameAtt = ncreadatt(outfile, 'data_flag', 'long_name');
+        % Add entry for side lobes
+        longNameAtt = [longNameAtt '; 5: side lobes removed'];
+        
+        ncwriteatt(outfile, 'data_flag', 'long_name', longNameAtt)
     end
 end
