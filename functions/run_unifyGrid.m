@@ -214,6 +214,7 @@ if savedata
                 end
                 
                 %% Remove clutter from radar data
+
                 if radarClutter && strcmp(instr{j}, 'radar')
                     removeClutter(outfile, missingvalue, fillvalue)
                 end 

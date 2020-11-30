@@ -21,7 +21,7 @@ t2 = '20200130';
 % there
 
 %% Processing steps
-correctAttitude = false;
+correctAttitude = true;
 addRadarMask = true;
 unifyGrid = true;
 quicklooks = true;
@@ -55,11 +55,11 @@ surfaceMask = 1;
 seaSurfaceMask = 1;
 numRangeGatesForSeaSurface = 4;
 
-%%
+%% Processing
 
 % Check structure of folders for data files
 checkfolderstructure(getPathPrefix, flightdates_use)
-
+    
 if correctAttitude
     % Correct radar data for aircraft attitude
     runRadarAttitude(flightdates_use, missingvalue)
