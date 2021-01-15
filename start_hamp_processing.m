@@ -10,22 +10,24 @@ contact = 'heike.konow@uni-hamburg.de';
 % <instrument>_<date>_v<version-number>.nc
 % An additional file name prefix can be specified here (e.g. for EUREC4A),
 % if no prefix is necessary, set to empty string ('')
-filenameprefix = 'EUREC4A_HALO_';
+% filenameprefix = 'EUREC4A_HALO_';
+filenameprefix = '';
 
 %% Specify time frame for data conversion
 % Start date
-t1 = '20200130';  
+t1 = '20200207';  
 % End date
-t2 = '20200130';
+t2 = '20200207';
 % ! Add flight information to file flight_dates.m if they aren't already in
 % there
 
 %% Processing steps
-correctAttitude = true;
-addRadarMask = true;
-unifyGrid = true;
-quicklooks = true;
-removeClutter = true;
+correctAttitude = false;
+addRadarMask = false;
+unifyGrid = false;
+quicklooks = false;
+removeClutter = false;
+removeRadiometerErrors = true;  % Only possible if errors have been identified using run_assessData.m
 
 %% Set version information
 version = 0;
@@ -75,6 +77,10 @@ if unifyGrid
     % Unify data from bahamas, dropsondes, radar, radiometer onto common grid
     run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, ...
         rollThreshold, addRadarMask, removeClutter, missingvalue, fillvalue, filenameprefix)
+end
+
+if removeRadiometerErrors
+    run_removeRadiometerErrors(version, subversion, flightdates_use)
 end
 
 if quicklooks
