@@ -25,7 +25,7 @@
 %------------- BEGIN CODE --------------
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-function runRadarAttComb(convertmarker, flightdate)
+function runRadarAttComb(convertmarker, flightdate, missingvalule)
 
 % Set version number
 versionNumber = '0';
@@ -75,9 +75,9 @@ if convertmarker==1
     if isempty(fileNames)
         fileNames = listFiles([radarDir '*.mmclx']);
     end
-    fprintf('%s\n','')
-    disp('Found the following mira files:')
-    fprintf('\t%s\n',fileNames{:})
+%     fprintf('%s\n','')
+%     disp('Found the following mira files:')
+%     fprintf('\t%s\n',fileNames{:})
 
     % Start processing
     fprintf('%s\n','')
@@ -96,7 +96,7 @@ if convertmarker==1
             fprintf('%s\n','')
 
             % Combine radar data with Smart data
-            radarCorrectAtt_smart(RadarFile,versionNumber,radarOutDir,'nolobes')
+            radarCorrectAtt_smart(RadarFile,versionNumber,radarOutDir, missingvalule,'nolobes')
 
         end
     end
@@ -110,8 +110,8 @@ if convertmarker==1
     fprintf('%s\n','')
     
     % Display
-    disp('Found the following .2 version files:')
-    fprintf('\t%s\n',fileNames{:})
+%     disp('Found the following .2 version files:')
+%     fprintf('\t%s\n',fileNames{:})
 end
 
 %% Subversion 2: flight angles corrected with bahamas
@@ -132,9 +132,9 @@ if convertmarker==2
     if isempty(fileNames)
         fileNames = listFiles([radarDir '*.mmclx']);
     end
-    fprintf('%s\n','')
-    disp('Found the following mira files:')
-    fprintf('\t%s\n',fileNames{:})
+%     fprintf('%s\n','')
+%     disp('Found the following mira files:')
+%     fprintf('\t%s\n',fileNames{:})
 
     % Start processing
     fprintf('%s\n','')
@@ -159,7 +159,7 @@ if convertmarker==2
 
             else
                 % Combine radar data with Bahamas data
-                radarCorrectAtt_bahamas(RadarFile,versionNumber,radarOutDir,'nolobes')
+                radarCorrectAtt_bahamas(RadarFile,versionNumber,radarOutDir, missingvalule,'nolobes')
             end
 
         end
@@ -174,8 +174,8 @@ if convertmarker==2
     fprintf('%s\n','')
     
     % Display
-    disp('Found the following .2 version files:')
-    fprintf('\t%s\n',fileNames{:})
+%     disp('Found the following .2 version files:')
+%     fprintf('\t%s\n',fileNames{:})
 end
 
 

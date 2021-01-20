@@ -1,4 +1,5 @@
-function [uniTime,uniHeight,uniData] = unifyGrid_bahamas(pathtofolder,flightdate,bahamasVars)
+function [uniTime,uniHeight,uniData] = unifyGrid_bahamas(pathtofolder, flightdate, ...
+                                                         bahamasVars, fillvalue)
 
 interpolate = 1;
 
@@ -13,8 +14,8 @@ end
 extra_info = cell(1,4);
 
 %% Load bahamas data
-filename = listFiles([pathtofolder 'bahamas/*' flightdate '*']);
-filepath = [pathtofolder 'bahamas/' filename{1}];
+filepath = listFiles([pathtofolder 'bahamas/*' flightdate '*'], 'full', 'mat');
+% filepath = [pathtofolder 'bahamas/' filename{1}];
 
 % List Bahamas variables in file
 varsInBahamasFile = nclistvars(filepath);
@@ -32,11 +33,11 @@ bahamasAlt = ncread(filepath,varNameUse{1});
 
 %% Define grid
 % Define grid for height data
-uniHeight = (0:30:max(bahamasAlt))';
+uniHeight = (0:30:max(bahamasAlt)+30)';
 % Define grid for time data
 uniTime = bahamasTime(1):1/24/60/60:bahamasTime(end);
 % Create empty variable according to unified grid
-uniData = nan(length(uniHeight),length(uniTime));
+uniData = ones(length(uniHeight),length(uniTime)) .* fillvalue;
 
 extra_info(end+1,:) = {'time','seconds since 1970-01-01 00:00:00 UTC','time','uniTime'};
 extra_info(end+1,:) = {'height','m','height','uniHeight'};
@@ -57,11 +58,6 @@ if length(bahamasTime)==10*length(uniTime)
 end
 
 % Select Bahamas variables to consider
-% bahamasVars = {'mixratio','P','RH','speed_air','theta','theta_v','Tv','U','V','W',...
-%                'wa','ws','Ts','Td','T','heading','pitch','roll','lat','lon'};
-% bahamasVars = {'MIXRATIO','PS','RELHUM','THETA','U','V','W','IRS_ALT'...
-%                 'IRS_HDG','IRS_THE','IRS_PHI','IRS_LAT','IRS_LON','TS'};
-            
 bahamasVarsUse = cellfun(@(x,y) replaceBahamasVarName(x,varsInBahamasFile),...
                  bahamasVars,'UniformOutput',false);
 bahamasVars = [bahamasVarsUse{:}];
@@ -117,6 +113,7 @@ if ~isempty(bahamasVars)
         % Replace missing value with nan
         data(data<-9000) = nan;
 
+        % If interpolate flag is set and there are gaps in data
         if interpolate && sum(isnan(data))>0
             if exist('bahamasTime10Hz','var')
                 timeInterp = bahamasTime10Hz;
@@ -125,10 +122,12 @@ if ~isempty(bahamasVars)
             end
             % Only interpolate data if not all are nan
             if sum(~isnan(data))>0
-                interpolated_data = interpolateData(timeInterp,data,3000);
+                [interpolated_data, interpolate_flag] = interpolateData(timeInterp,data,3000);
                 % Rename
                 data = interpolated_data;
             end
+        elseif interpolate
+            interpolate_flag = zeros(size(data));
         end
 
         % Read units and long name
@@ -138,11 +137,22 @@ if ~isempty(bahamasVars)
         longNameTemp_2d = [longNameTemp '; 2d data'];
         extra_info(end+1,:) = {trueNames{i},unitsTemp,longNameTemp_2d,['uniBahamas' trueNames{i}]};
 
-        % Transpose if necessary and error check
+        % Check if interpolated data is time series of same length as uniTime
         if size(data,1)==length(uniTime) && size(data,2)==1
+            % Transpose data
             data = data';
+            
+        % Else, check if a index variable for 1 Hz data exists
         elseif exist('ind1Hz','var')
+            % Convert data to 1 Hz
             data = data(ind1Hz);
+            
+            % If variable interpolate_flag exists, copy to 1 Hz
+            if exist('interpolate_flag', 'var')
+                interpolate_flag = interpolate_flag(ind1Hz);
+            end
+            
+        % Else, check if dimension sizes don't match
         elseif sum(size(data)==length(uniTime))==0
             error('Problem: Bahamas data dimensions don''t agree')
         end
@@ -153,13 +163,18 @@ if ~isempty(bahamasVars)
 
         % Test if only one value per time step is in variable
         if sum(sum(~isnan(tmp_data),1)<=1)==length(uniTime)
+            % Sum up over each column to generate 1d data
             tmp_data_1d = nansum(tmp_data,1);
+            % Collect info for variable
             extra_info(end+1,:) = {trueNames{i},unitsTemp,longNameTemp_1d,['uniBahamas' trueNames{i} '_1d']};
+            extra_info(end+1,:) = {[trueNames{i} '_intFlag'],'',[longNameTemp '; interpolation flag'],['uniBahamas' trueNames{i} '_interpolateFlag']};
+            % Rename data
             eval(['uniBahamas' trueNames{i} '_1d = tmp_data_1d;'])
+            eval(['uniBahamas' trueNames{i} '_interpolateFlag = interpolate_flag;'])
         else
             error(['Fehler: ' trueNames{i}])
         end
-        clear data tmp_data tmp_data_1d
+        clear data tmp_data tmp_data_1d interpolate_flag
     end
 end
 clear indTime indHeight bahamasTime10Hz
@@ -179,5 +194,4 @@ clear uniData unitsTemp
 
 save(outfile,'uni*','flightdate','extra_info')
 
-
-
+end

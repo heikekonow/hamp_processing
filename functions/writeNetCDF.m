@@ -52,7 +52,7 @@
 %   August 2016; Last revision: January 2017
 
 %%
-function writeNetCDF(outfile,ncVarNames,ncDims,varData,varInfo,globAtt,scriptname)
+function writeNetCDF(outfile,ncVarNames,ncDims,varData,varInfo,globAtt,scriptname, fillvalue)
 
 %------------- BEGIN CODE --------------
 
@@ -68,6 +68,9 @@ if exist(outfile,'file')
     delete(outfile)
 end
 %%
+
+% Get names of variable dimensions
+dimNames = getDimNames(ncDims);
 
 % Loop all variables
 for i=1:length(ncVarNames)
@@ -102,17 +105,19 @@ for i=1:length(ncVarNames)
         % Create netcdf variable
         nccreate(outfile,ncVarNames{i},'Format',ncformat,'DeflateLevel',deflatelevel)
         
-    % If variable is vector or matrix
+    % If variable is vector or matrix and not a dimension, add fill value
+    % information
+    elseif ~any(strcmp(ncVarNames{i}, dimNames))
+        
+        % Create netcdf variable
+        nccreate(outfile,ncVarNames{i},'Dimensions',[ncDims{i}],'Datatype','double',...
+            'Format',ncformat,'DeflateLevel',deflatelevel, 'FillValue', fillvalue)
+    % Else, if variable is vector/matrix and a dimension
     else
         % Create netcdf variable
-        
-%         if ~strcmp(ncVarNames{i},'time') && varData{i}(1)<800000 
-%             nccreate(outfile,ncVarNames{i},'Dimensions',[ncDims{i}],'Datatype','single',...
-%                 'Format',ncformat,'DeflateLevel',deflatelevel)
-%         else % if variable is 'time'
-            nccreate(outfile,ncVarNames{i},'Dimensions',[ncDims{i}],'Datatype','double',...
-                'Format',ncformat,'DeflateLevel',deflatelevel)
-%         end
+        nccreate(outfile,ncVarNames{i},'Dimensions',[ncDims{i}],'Datatype','double',...
+            'Format',ncformat,'DeflateLevel',deflatelevel)
+
     end
     
     % Write data to file
@@ -144,4 +149,17 @@ function timeRounded = checkAndRoundTime(time)
     if numel(time)~=numel(unique(timeRounded))
         error('rounded time is funny')
     end
+end
+
+function dimNames = getDimNames(ncDims)
+    
+    % Analyse dimensions for all variables
+    for i=1:length(ncDims)
+        if iscell(ncDims{i})
+            % Get dimension names
+            dimNames{i, :} = {ncDims{i}{cellfun(@isstr, ncDims{i})}};
+        end
+    end
+    
+    dimNames = unique([dimNames{:}]);
 end

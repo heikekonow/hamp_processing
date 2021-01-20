@@ -5,7 +5,7 @@
 %   Syntax:  tSDN = time2001_2sdn(t2001)
 %
 %   Inputs:
-%       t2001 - time in seconds since 01.01.1970 00:00:00
+%       t2001 - time in seconds since 01.01.2001 00:00:00
 %
 %   Outputs:
 %       tSDN - time as Serial Date Number
@@ -31,7 +31,7 @@
 
 %%
 function tSDN = time2001_2sdn(t2001)
-% Convert Unix Time (seconds since 01.01.1970 00:00:00) to Matlab serial
+% Convert Time 2001 (seconds since 01.01.2001 00:00:00) to Matlab serial
 % date number
 
 secondsPerDay = 86400;

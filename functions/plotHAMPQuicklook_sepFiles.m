@@ -94,6 +94,12 @@ lon = ncread(bahamasfile,'lon');
 
 if ncVarInFile(radarfile,'dBZ')
     dBZ = ncread(radarfile,'dBZ');
+    
+    % Apply fill value and missing value information
+    mVal = ncreadatt(radarfile, 'dBZ', 'missing_value');
+    fVal = ncreadatt(radarfile, 'dBZ', '_FillValue');
+    
+    dBZ(dBZ==mVal|dBZ==fVal) = nan;
 end
 
 %%
@@ -128,7 +134,12 @@ datetick('x','HH:MM')
 ylabel('BT (K), 183')
 finetunefigures
 % ylim([220 320])
-ylim([min(min(BT_183))-10 max(max(BT_183))+40])
+yl = [min(min(BT_183))-10 max(max(BT_183))+40];
+if any(isinf(yl))
+    ylim([150 300])
+else
+    ylim(yl)
+end
 l = cellstr(num2str(f_183));
 plotLegendAsColoredText(gca,l,[0.15 0.55],0.03)
 
@@ -200,8 +211,9 @@ xlim([round(min(lon))-1 round(max(lon))+1])
 ylim([round(min(lat))-1 round(max(lat))+1])
 finetunefigures
 
-versionstring = findLatestVersionInfo(bahamasfile);
-[a,~] = suplabel([datestr(t(1),'dd.mm.yyyy') ' - ' versionstring{1}],'t');
+% versionstring = findLatestVersionInfo(bahamasfile);
+versionstring = getVersionFromFilename(bahamasfile);
+[a,~] = suplabel([datestr(t(1),'dd.mm.yyyy') ' - v' versionstring],'t');
 pos = a.Position;
 set(a,'Position',pos+[0 -0.02 0 0])
 

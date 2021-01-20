@@ -33,7 +33,7 @@
 %   March 2016; Last revision: June 2016
 
 %%
-function indTime = get_indTime(uniTime,instrTime)
+function indTime = get_indTime(uniTime,instrTime, varargin)
 
 %------------- BEGIN CODE --------------
 

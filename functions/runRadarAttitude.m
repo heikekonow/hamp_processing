@@ -1,4 +1,4 @@
-function runRadarAttitude(flightdates_use)
+ function runRadarAttitude(flightdates_use, missingvalue)
 
 
     
@@ -24,5 +24,5 @@ for i=1:length(flightdates_use)
     
     % run runRadarAttComb with overloaded marker for smart or bahamas
     
-    runRadarAttComb(convertmarker, flightdates_use{i})
+    runRadarAttComb(convertmarker, flightdates_use{i}, missingvalue)
 end
