@@ -1,18 +1,18 @@
 %% assess_radiometer_data
 %   assess_radiometer_data - use this to assess radiometer measurement errors
-%   In the beginning of the program, set the mode for this program:
 %       
-%       Set figures = true if you want to look through figures from 
-%           individual flights and note error and saw tooth occurrences.
-%           Note error and saw tooth interval indices in file
-%           'radiometerErrorsLookupInt.m'
-%       Set calc = true if you want to calculate error percentages.
-%       Set overview = true if you want to produce overview figure.
 %
 %   Syntax:  [output1,output2] = function_name(input1,input2,input3)
 %
 %   Inputs:
-%       none
+%       figures = true  if you want to look through figures from 
+%                   individual flights and note error and saw tooth occurrences.
+%                   Note error and saw tooth interval indices in file
+%                   'radiometerErrorsLookup.m'
+%       calc = true     if you want to calculate error percentages
+%       overview = true if you want to produce overview figure
+%       check = true    if you want to check you identified errors
+%       campaign:       string with campaign name
 %
 %   Outputs:
 %       none
@@ -32,7 +32,7 @@
 %------------- BEGIN CODE --------------
 
 
-function assess_radiometer_data(figures, calc, overview, campaign)
+function assess_radiometer_data(figures, calc, overview, check, campaign)
 
 % Housekeeping 
 close all
@@ -106,6 +106,117 @@ if figures
 
         clear tb t
         close all
+    end
+end
+
+%% Check removed errors and saw tooth pattern
+if check
+    
+    % Load error indices
+    [errors, sawtooth] = radiometerErrorsLookup;
+    errorsSing = radiometerErrorsSingleChannelLookup;
+    
+    errorsSingDay = cell2mat(errorsSing(:,1));
+    errorsSingFreq = cell2mat(errorsSing(:,2));
+
+    % Loop dates
+    for i=1:length(dates)
+        
+        % Preallocate cell array
+        tb = cell(length(radiometerStrings),1);
+        
+        % Loop radiometers
+        for j=1:length(radiometerStrings)
+            
+            % Get instrument index from error cell
+            indInstr = cellfun(@(x) strcmp(radiometerStrings{j},x),errors(2,:));
+        
+            % Get day index from error cell
+            indDay = strcmp(errors{1,indInstr}(:,1),dates{i});
+            
+            % Copy errors to variables
+            errorsDay = errors{1,indInstr}{indDay,2};
+            sawtoothDay = sawtooth{1,indInstr}{indDay,2};
+            
+            % Get file path
+            filepath = listFiles([path{j} '*' dates{i}(3:end) '*'], 'full', 'mat');
+            
+            if ~isempty(filepath)
+                % Read data
+                tb = ncread(filepath,'TBs');
+                f = ncread(filepath, 'frequencies');
+                
+                
+                % Copy variable
+                tbTest = tb;
+                
+                % Check if error was found
+                if ~cellfun(@isempty, errorsDay)
+                    % Remove error time steps
+                    for k=1:length(errorsDay)
+                        tbTest(:, errorsDay{k}(1):errorsDay{k}(2)) = nan;
+                    end
+                end
+                
+                % Check if saw tooth was found
+                if ~cellfun(@isempty, sawtoothDay)
+                    % Remove saw tooth time steps
+                    for k=1:length(sawtoothDay)
+                        tbTest(:, sawtoothDay{k}(1):sawtoothDay{k}(2)) = nan;
+                    end
+                end
+                
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                
+                % Look if entries exist for this date in Single Channel
+                % Error Lookup Table
+                indDaySing = strcmp(errorsSing(:,1), dates{i});
+                
+                % Look for frequency in data that was listed in error
+                % lookup table
+                if sum(indDaySing)>0 && any(ismember([errorsSing{indDaySing,2}], round(double(f),2)))
+                    indFreqData = [errorsSing{indDaySing,2}]==round(double(f),2);
+                    % Remove empty columns
+                    indFreqData(:, ~any(indFreqData, 1)) = [];
+                    
+                    a = {errorsSing{indDaySing, 3}};
+                    
+                    % Copy error indices to new variable
+%                     singleChannelErrors = errorsSing{indDaySing, 3};
+                    singleChannelErrors = a{ismember([errorsSing{indDaySing,2}], round(double(f),2))};
+                    
+                    if sum(sum(indFreqData))>0
+                        for k=1:length(singleChannelErrors)
+                            tbTest(indFreqData, singleChannelErrors{k}(1):singleChannelErrors{k}(2)) = nan;
+                        end
+                    end
+                end
+                
+                %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+                
+                % New figure
+                figure(1)
+                set(gcf, 'Position', [931 259 990 838])
+                
+                subplot(2,1,1)
+                plot(tb')
+                title(dates{i})
+                finetunefigures
+                
+                subplot(2,1,2)
+                plot(tbTest')
+                title(radiometerStrings{j})
+                finetunefigures
+                plotLegendAsColoredText(gca,cellstr(num2str(f)),[0.15 0.89],0.05)
+                
+                % Pause plot to analyse new time series and adjust error
+                % indices in radiometerErrorsLookup.m if necessary
+                pause
+                close(figure(1))
+            end
+            
+        end
+        
     end
 end
 

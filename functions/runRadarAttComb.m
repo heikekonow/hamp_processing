@@ -75,9 +75,9 @@ if convertmarker==1
     if isempty(fileNames)
         fileNames = listFiles([radarDir '*.mmclx']);
     end
-    fprintf('%s\n','')
-    disp('Found the following mira files:')
-    fprintf('\t%s\n',fileNames{:})
+%     fprintf('%s\n','')
+%     disp('Found the following mira files:')
+%     fprintf('\t%s\n',fileNames{:})
 
     % Start processing
     fprintf('%s\n','')
@@ -110,8 +110,8 @@ if convertmarker==1
     fprintf('%s\n','')
     
     % Display
-    disp('Found the following .2 version files:')
-    fprintf('\t%s\n',fileNames{:})
+%     disp('Found the following .2 version files:')
+%     fprintf('\t%s\n',fileNames{:})
 end
 
 %% Subversion 2: flight angles corrected with bahamas
@@ -132,9 +132,9 @@ if convertmarker==2
     if isempty(fileNames)
         fileNames = listFiles([radarDir '*.mmclx']);
     end
-    fprintf('%s\n','')
-    disp('Found the following mira files:')
-    fprintf('\t%s\n',fileNames{:})
+%     fprintf('%s\n','')
+%     disp('Found the following mira files:')
+%     fprintf('\t%s\n',fileNames{:})
 
     % Start processing
     fprintf('%s\n','')
@@ -174,8 +174,8 @@ if convertmarker==2
     fprintf('%s\n','')
     
     % Display
-    disp('Found the following .2 version files:')
-    fprintf('\t%s\n',fileNames{:})
+%     disp('Found the following .2 version files:')
+%     fprintf('\t%s\n',fileNames{:})
 end
 
 

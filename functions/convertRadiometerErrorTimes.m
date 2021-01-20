@@ -3,33 +3,22 @@
 %   flag according to unified data set
 %   Data is saved into mat file in auxiliary folder
 %
-%   Syntax:  [output1,output2] = function_name(input1,input2,input3)
+%   Syntax:  convertRadiometerErrorTimes(campaign)
 %
 %   Inputs:
-%       input1 - Description
-%       input2 - Description
-%       input3 - Description
+%       campaign - String with campaign name
 %
 %   Outputs:
-%       output1 - Description
-%       output2 - Description
+%       file with error flags in subfolder aux/
 %
 %   Example: 
-%       Line 1 of example
-%       Line 2 of example
-%       Line 3 of example
-%
-%   Other m-files required: none
-%   Subfunctions: none
-%   MAT-files required: none
-%
-%   See also: 
+%       convertRadiometerErrorTimes('EUREC4A')
 %
 %   Author: Dr. Heike Konow
 %   Meteorological Institute, Hamburg University
 %   email address: heike.konow@uni-hamburg.de
 %   Website: http://www.mi.uni-hamburg.de/
-%   DATE created; Last revision: April 2020
+%   June 2017; Last revision: April 2020
 
 %------------- BEGIN CODE --------------
 
@@ -39,7 +28,7 @@
 function convertRadiometerErrorTimes(campaign)
 
 % Load error indices
-[errors, sawtooth] = radiometerErrorsLookupInt;
+[errors, sawtooth] = radiometerErrorsLookup;
 
 % Radiometer modules
 instr = {'183','11990','KV'};
@@ -128,7 +117,7 @@ for j=1:length(instr)
                         % Set flag to 1
                         timeErrorFlag(ind_errorTime(1):ind_errorTime(2)) = 1;
                     end
-                elseif timeRaw(indError(2))>timeUni(1) % Make sure that second error index time is after first time step from uni time
+                elseif timeRaw(indError(2))>timeUni(1) && timeRaw(indError(1))<=timeUni(end) % Make sure that second error index time is after first time step from uni time
                     
                     % Find according time interval indices in unified grid
                     ind_errorTime(1) = find(timeUni>=timeRaw(indError(1)),1,'first');
@@ -187,4 +176,4 @@ end
 checkandcreate(basefolder, 'aux')
 
 % Save flags to file
-save([basefolder 'aux/errorFlag.mat'],'errorFlag','sawtoothFlag','date','instr')
+save([basefolder 'aux/errorFlagRadiometer.mat'],'errorFlag','sawtoothFlag','date','instr')

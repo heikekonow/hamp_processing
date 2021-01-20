@@ -43,7 +43,7 @@ assess_radar_data(figures, calc, campaign, minalt)
 
 % To assess quality of radiometer data, use the script below. 
 % 1. In a first step set figures=true to go through all flights and identify 
-%    error indices. These should be noted in the file radiometerErrorsLookupInt.m
+%    error indices. These should be noted in the file radiometerErrorsLookup.m
 % 2. Set calc=true to calculate percentages of errors
 % 3. Set overview=true for overview figure
 
@@ -54,10 +54,26 @@ figures = false;
 calc = false;
 % Set if overview figure should be produced
 overview = true;
+% Set if you want to check the results of error removal
+check = false;
 % Set campaign to analyse
 campaign = 'EUREC4A';
 % %%%%%%%%%%%%%%%%%%%%%%
 
-assess_radiometer_data(figures, calc, overview, campaign)
+assess_radiometer_data(figures, calc, overview, check, campaign)
+
+%% Convert intervals to error flags
+
+% This only works if you have analysed the errors in the steps above and
+% noted the intervals in radiometerErrorsLookup.m and radarErrorsLookup.m 
+
+% Convert to flag for radiometer
+convertRadiometerErrorTimes(campaign)
+
+% Convert to flag for radiometer for errors in individual channels
+convertRadiometerErrorTimesSingleChannel(campaign)
+
+% convert to flag for radar
+convertRadarErrorTimes(campaign)
 
 %------------- END OF CODE --------------
