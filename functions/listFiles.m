@@ -12,10 +12,10 @@
 %   Outputs:
 %       Files - cell array with file names as strings
 %
-%   Example:
+%   Example: 
 %       BahamasPath = '/data/share/u231/u231107/HAMP/bahamas_all/';
 %       files = listFiles([BahamasPath '*.nc'])
-%       files =
+%       files = 
 %             'adlr_20131210a.naswNaNs.nc'
 %             'adlr_20131211a.naswNaNs.nc'
 %             'adlr_20131212a.naswNaNs.nc'
@@ -25,7 +25,7 @@
 %   Subfunctions: none
 %   MAT-files required: none
 %
-%   See also:
+%   See also: 
 %
 %   Author: Dr. Heike Konow
 %   Meteorological Institute, Hamburg University
@@ -35,14 +35,12 @@
 %   June 2015,
 %   February 2017: added option for full path return
 %   September 2017: added option for latest file version return
-%   March 2020: remove entries '.' and '..' for folder lists
-%
+%   
 
 %%
 function Files = listFiles(searchstring,varargin)
 
 %------------- BEGIN CODE --------------
-
 filescells = cell(size(searchstring,1),1);
 for i=1:size(searchstring,1)
     % List every file that complies to searchstring in structure
