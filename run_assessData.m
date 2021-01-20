@@ -54,11 +54,13 @@ figures = false;
 calc = false;
 % Set if overview figure should be produced
 overview = true;
+% Set if you want to check the results of error removal
+check = false;
 % Set campaign to analyse
 campaign = 'EUREC4A';
 % %%%%%%%%%%%%%%%%%%%%%%
 
-assess_radiometer_data(figures, calc, overview, campaign)
+assess_radiometer_data(figures, calc, overview, check, campaign)
 
 %% Convert intervals to error flags
 
@@ -67,6 +69,9 @@ assess_radiometer_data(figures, calc, overview, campaign)
 
 % Convert to flag for radiometer
 convertRadiometerErrorTimes(campaign)
+
+% Convert to flag for radiometer for errors in individual channels
+convertRadiometerErrorTimesSingleChannel(campaign)
 
 % convert to flag for radar
 convertRadarErrorTimes(campaign)
