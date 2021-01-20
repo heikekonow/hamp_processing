@@ -117,7 +117,7 @@ for j=1:length(instr)
                         % Set flag to 1
                         timeErrorFlag(ind_errorTime(1):ind_errorTime(2)) = 1;
                     end
-                elseif timeRaw(indError(2))>timeUni(1) % Make sure that second error index time is after first time step from uni time
+                elseif timeRaw(indError(2))>timeUni(1) && timeRaw(indError(1))<=timeUni(end) % Make sure that second error index time is after first time step from uni time
                     
                     % Find according time interval indices in unified grid
                     ind_errorTime(1) = find(timeUni>=timeRaw(indError(1)),1,'first');

@@ -15,23 +15,23 @@ filenameprefix = '';
 
 %% Specify time frame for data conversion
 % Start date
-t1 = '20200207';  
+t1 = '20200119';  
 % End date
-t2 = '20200207';
+t2 = '20200228';
 % ! Add flight information to file flight_dates.m if they aren't already in
 % there
 
 %% Processing steps
-correctAttitude = false;
-addRadarMask = false;
-unifyGrid = false;
-quicklooks = false;
-removeClutter = false;
+correctAttitude = true;
+addRadarMask = true;
+unifyGrid = true;
+quicklooks = true;
+removeClutter = true;
 removeRadiometerErrors = true;  % Only possible if errors have been identified using run_assessData.m
 
 %% Set version information
 version = 0;
-subversion = 7;
+subversion = 8;
 
 %% Missing value
 % Set value for missing value (pixels with no measured signal). This should
