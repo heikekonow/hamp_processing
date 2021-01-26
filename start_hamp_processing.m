@@ -15,9 +15,9 @@ filenameprefix = '';
 
 %% Specify time frame for data conversion
 % Start date
-t1 = '20200119';  
+t1 = '20200124';  
 % End date
-t2 = '20200228';
+t2 = '20200124';
 % ! Add flight information to file flight_dates.m if they aren't already in
 % there
 
@@ -28,10 +28,11 @@ unifyGrid = true;
 quicklooks = true;
 removeClutter = true;
 removeRadiometerErrors = true;  % Only possible if errors have been identified using run_assessData.m
+correctRadiometerTime = true;
 
 %% Set version information
 version = 0;
-subversion = 8;
+subversion = 9;
 
 %% Missing value
 % Set value for missing value (pixels with no measured signal). This should
@@ -76,7 +77,7 @@ end
 if unifyGrid
     % Unify data from bahamas, dropsondes, radar, radiometer onto common grid
     run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, ...
-        rollThreshold, addRadarMask, removeClutter, missingvalue, fillvalue, filenameprefix)
+        rollThreshold, addRadarMask, removeClutter, correctRadiometerTime, missingvalue, fillvalue, filenameprefix)
 end
 
 if removeRadiometerErrors

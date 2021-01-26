@@ -1,5 +1,6 @@
 function unifyGrid_radiometer(pathtofolder, flightdate, uniTime, radiometerVars, ...
-                              altitudeThreshold, rollThreshold, missingvalue, fillvalue)
+                              altitudeThreshold, rollThreshold, missingvalue, fillvalue, ...
+                              correctRadiometerTime)
 
 interpolate = 1;
 
@@ -85,6 +86,13 @@ for i=1:length(radiometerVars)
         
         % Round time to seconds to avoid numerical deviations
         radiometerTime = dateround(radiometerTime', 'second');
+        
+        if correctRadiometerTime
+            % freq(1)
+            % flightdate
+            [radiometerTime, ~, ~] = radiometerTimeOffset(flightdate, freq(1), radiometerTime);
+            
+        end
         
         % Remove times in the future and past
         ind_off = find(radiometerTime > datenum(flightdate,'yyyymmdd')+2 | ...

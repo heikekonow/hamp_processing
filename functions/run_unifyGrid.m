@@ -1,5 +1,6 @@
 function run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, ...
-                        rollThreshold, radarmask,  radarClutter, missingvalue, fillvalue, filenameprefix)
+                        rollThreshold, radarmask,  radarClutter, correctRadiometerTime, ...
+                        missingvalue, fillvalue, filenameprefix)
 
 tic 
 %% Switches 
@@ -71,7 +72,7 @@ if unify
 
         % Radiometer
         unifyGrid_radiometer(pathtofolder,flightdates_use{i},uniTime,radiometerVars,...
-            altitudeThreshold, rollThreshold, missingvalue, fillvalue)
+            altitudeThreshold, rollThreshold, missingvalue, fillvalue, correctRadiometerTime)
         
         % Radar
         unifyGrid_radar(pathtofolder,flightdates_use{i},uniHeight,uniTime,radarVars)
