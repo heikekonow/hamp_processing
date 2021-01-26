@@ -1,4 +1,4 @@
-function [timeOffsetRange, timeOffsetValue] = radiometerTimeOffset(flightdate, frequency)
+function [time, timeOffsetRange, timeOffsetValue] = radiometerTimeOffset(flightdate, frequency, time)
 
 timeOffsetsAll = {...
     '20200119',    'HAMP-WF',    ':',          -141;
@@ -34,9 +34,11 @@ timeOffsetsAll = {...
     '20200218',    'HAMP-G ',    ':',            -4;
     };
 
+% Copy data to variables
 offsetDates = timeOffsetsAll(:,1);
 offsetModules = timeOffsetsAll(:,2);
 
+% Find date index
 indexDate = strcmp(flightdate, offsetDates);
 
 % Explanation for different radiometer modules
@@ -44,6 +46,7 @@ indexDate = strcmp(flightdate, offsetDates);
 % 2: 11990, f>=90 & f<180   (WF band)
 % 3: KV,    f<90            (KV band)
 
+% Translate frequency to string from table above
 if frequency >= 180
     freqString = 'HAMP-G ';
 elseif frequency>=90 && frequency<180
@@ -54,9 +57,46 @@ else
     error('Frequency not found')
 end
 
+% Find frequency index
 indexFrequency = strcmp(freqString, offsetModules);
 
+% Find row where frequency and data match given date and frequency
 indexEntry = indexFrequency & indexDate;
 
+% Extract entries from table
 timeOffsetRange = timeOffsetsAll(indexEntry, 3);
 timeOffsetValue = cell2mat(timeOffsetsAll(indexEntry, 4));
+
+%%%%%%%%%%%
+% Apply time offset values
+for i=1:length(timeOffsetRange)
+    
+    % Get colon position from string
+    colPos = regexp(timeOffsetRange{i}, ':');
+    
+    % Analyse time offset index
+    if strcmp(timeOffsetRange{i}, ':')          % ':'
+        ind(1) = 1;
+        ind(2) = length(time);
+        
+    elseif strncmp(timeOffsetRange{i}, ':', 1)  % ':yyyy'
+        ind(1) = 1;
+        a = timeOffsetRange{i}(2:end);
+        ind(2) = str2double(a);
+        
+    elseif colPos==length(timeOffsetRange{i})
+        a = timeOffsetRange{i}(1:colPos-1);     % 'xxxx:'
+        
+        ind(1) = str2double(a);
+        ind(2) = length(time);
+        
+    else                                        % 'xxxx:yyyy'
+        ind{1} = timeOffsetRange{i}(1:colPos-1);
+        ind{2} = timeOffsetRange{i}(colPos+1:end);
+        ind = cellfun(@str2double, ind);
+    end
+    
+    % Apply offset to time array
+    time(ind(1):ind(2)) = time(ind(1):ind(2)) + timeOffsetValue(i) ./24./60./60;
+    clear ind
+end
