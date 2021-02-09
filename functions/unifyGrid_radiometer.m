@@ -20,6 +20,7 @@ extra_info = cell(1,4);
 % radiometerVars = {'183','11990','KV'};
 
 interpolate_flag = cell(1,3);
+corrComment = cell(1, length(radiometerVars));
 
 for i=1:length(radiometerVars)
         
@@ -87,10 +88,11 @@ for i=1:length(radiometerVars)
         % Round time to seconds to avoid numerical deviations
         radiometerTime = dateround(radiometerTime', 'second');
         
+        % If time offsets for radiometer were found, apply offsets to time
+        % arrays
         if correctRadiometerTime
-            % freq(1)
-            % flightdate
-            [radiometerTime, ~, ~] = radiometerTimeOffset(flightdate, freq(1), radiometerTime);
+            
+            [radiometerTime, ~, ~, corrComment{i}] = radiometerTimeOffset(flightdate, freq(1), radiometerTime);
             
         end
         
@@ -257,7 +259,17 @@ for i=1:length(radiometerVars)
     clear indTimeUni indTimeRadiometer uniDataRadiometer data freq radiometerTime
 end
 
-% Combine measurements from all modules into one variable
+%% Create comment string with time offset information
+% Create cell with delimiters for comments
+c = cell(4, 1);
+c(1:3) = {', '};
+c(4) = {' '};
+
+corrComment = join([[corrComment{:}]' c]);
+corrCommentString = join(['time corrections: ', corrComment']);
+
+
+%% Combine measurements from all modules into one variable
 uniRadiometer = [uniRadiometerKV;...
                  uniRadiometer11990;...
                  uniRadiometer183];

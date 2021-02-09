@@ -22,12 +22,12 @@ t2 = '20200124';
 % there
 
 %% Processing steps
-correctAttitude = true;
-addRadarMask = true;
+correctAttitude = false;
+addRadarMask = false;
 unifyGrid = true;
-quicklooks = true;
-removeClutter = true;
-removeRadiometerErrors = true;  % Only possible if errors have been identified using run_assessData.m
+quicklooks = false;
+removeClutter = false;
+removeRadiometerErrors = false;  % Only possible if errors have been identified using run_assessData.m
 correctRadiometerTime = true;
 
 %% Set version information
