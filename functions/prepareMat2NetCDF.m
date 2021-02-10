@@ -45,6 +45,10 @@ dim_size(cellfun(@isempty,dim_size)) = [];
 sizes(strcmp(varnames,'extra_info')) = [];
 % Delete variable name of variable 'extra_info'
 varnames(strcmp(varnames,'extra_info')) = [];
+% Delete size information of variable 'corrCommentString'
+sizes(strcmp(varnames,'corrCommentString')) = [];
+% Delete variable name of variable 'corrCommentString'
+varnames(strcmp(varnames,'corrCommentString')) = [];
 
 % Concatenate dimension sizes and variable size 
 % Here, just the order is changed so that the dimensions will be written

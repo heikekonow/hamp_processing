@@ -15,9 +15,9 @@ filenameprefix = '';
 
 %% Specify time frame for data conversion
 % Start date
-t1 = '20200124';  
+t1 = '20200119';  
 % End date
-t2 = '20200124';
+t2 = '20200218';
 % ! Add flight information to file flight_dates.m if they aren't already in
 % there
 
@@ -25,9 +25,9 @@ t2 = '20200124';
 correctAttitude = false;
 addRadarMask = false;
 unifyGrid = true;
-quicklooks = false;
-removeClutter = false;
-removeRadiometerErrors = false;  % Only possible if errors have been identified using run_assessData.m
+quicklooks = true;
+removeClutter = true;
+removeRadiometerErrors = true;  % Only possible if errors have been identified using run_assessData.m
 correctRadiometerTime = true;
 
 %% Set version information

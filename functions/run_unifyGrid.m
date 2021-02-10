@@ -95,7 +95,7 @@ commentAttr = {{'comment', comment}};
 
 %% Export to netcdf
 
-instr = {'radar','bahamas','radiometer','dropsondes'};
+instr = {'radiometer','radar','bahamas','dropsondes'};
 % instr = {'bahamas','radar','radiometer'};
 % instr = {'radar'};
 % instr = {'bahamas'};
@@ -219,6 +219,11 @@ if savedata
                 if radarClutter && strcmp(instr{j}, 'radar')
                     removeClutter(outfile, missingvalue, fillvalue)
                 end 
+                
+                %% Add comment about radiometer time correction
+                if correctRadiometerTime && strcmp(instr{j}, 'radiometer')
+                    addRadiometerTimeComment(outfile, infile)
+                end
                 
             else
                 disp(['No ' instr{j} ' data found'])
@@ -429,4 +434,10 @@ function removeSideLobes(outfile, rollThreshold, fillvalue, radarmask)
         
         ncwriteatt(outfile, 'data_flag', 'long_name', longNameAtt)
     end
+end
+
+function addRadiometerTimeComment(outfile, infile)
+    string = load(infile, 'corrCommentString');
+    
+    ncwriteatt(outfile, 'tb', 'comment', string.corrCommentString)
 end

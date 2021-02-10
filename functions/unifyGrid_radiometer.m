@@ -261,12 +261,34 @@ end
 
 %% Create comment string with time offset information
 % Create cell with delimiters for comments
-c = cell(4, 1);
-c(1:3) = {', '};
-c(4) = {' '};
 
-corrComment = join([[corrComment{:}]' c]);
-corrCommentString = join(['time corrections: ', corrComment']);
+if correctRadiometerTime
+    
+    % Reshape cells to include multiple comments per radiometer module
+    corrComment = [corrComment{:}];
+    
+    c = cell(length(corrComment), 1);
+    c(1:length(corrComment)-1) = {', '};
+    if ~isempty(corrComment)
+        c(length(corrComment)) = {' '};
+    else
+        corrComment{1} = 'none';
+    end
+    
+    % Delete empty comment string entries (where no correction was applied)
+    c(cellfun(@isempty, corrComment)) = [];
+    corrComment(cellfun(@isempty, corrComment)) = [];
+    
+    if length(corrComment)==1
+%         corrComment = corrComment{1}{1};
+        corrComment = cellflat(corrComment);
+        corrCommentString = ['time corrections: ', corrComment{1}];
+    else
+%         corrComment = join([[corrComment{:}]' c]);
+        corrComment = join([corrComment' c]);
+        corrCommentString = cell2mat(join(['time corrections: ', corrComment']));
+    end
+end
 
 
 %% Combine measurements from all modules into one variable
@@ -307,7 +329,7 @@ extra_info(1,:) = [];
 clear uniData unitsTemp 
 
 % Save data to file
-save(outfile,'uni*','flightdate','extra_info','interpolate_flag')
+save(outfile,'uni*','flightdate','extra_info','interpolate_flag', 'corrCommentString')
 
 end
 

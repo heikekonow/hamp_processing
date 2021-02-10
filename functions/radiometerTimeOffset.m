@@ -65,47 +65,54 @@ indexFrequency = strcmp(freqString, offsetModules);
 % Find row where frequency and data match given date and frequency
 indexEntry = indexFrequency & indexDate;
 
-% List Modules in variable
-modules = offsetModules(indexEntry);
+if any(indexEntry)
 
-% Extract entries from table
-timeOffsetRange = timeOffsetsAll(indexEntry, 3);
-timeOffsetValue = cell2mat(timeOffsetsAll(indexEntry, 4));
+    % List Modules in variable
+    modules = offsetModules(indexEntry);
 
-%%%%%%%%%%%
-% Apply time offset values
+    % Extract entries from table
+    timeOffsetRange = timeOffsetsAll(indexEntry, 3);
+    timeOffsetValue = cell2mat(timeOffsetsAll(indexEntry, 4));
 
-commentstr = cell(1, length(timeOffsetRange));
-for i=1:length(timeOffsetRange)
-    
-    % Get colon position from string
-    colPos = regexp(timeOffsetRange{i}, ':');
-    
-    % Analyse time offset index
-    if strcmp(timeOffsetRange{i}, ':')          % ':'
-        ind(1) = 1;
-        ind(2) = length(time);
-        
-    elseif strncmp(timeOffsetRange{i}, ':', 1)  % ':yyyy'
-        ind(1) = 1;
-        a = timeOffsetRange{i}(2:end);
-        ind(2) = str2double(a);
-        
-    elseif colPos==length(timeOffsetRange{i})
-        a = timeOffsetRange{i}(1:colPos-1);     % 'xxxx:'
-        
-        ind(1) = str2double(a);
-        ind(2) = length(time);
-        
-    else                                        % 'xxxx:yyyy'
-        ind{1} = timeOffsetRange{i}(1:colPos-1);
-        ind{2} = timeOffsetRange{i}(colPos+1:end);
-        ind = cellfun(@str2double, ind);
+    %%%%%%%%%%%
+    % Apply time offset values
+
+    commentstr = cell(1, length(timeOffsetRange));
+    for i=1:length(timeOffsetRange)
+
+        % Get colon position from string
+        colPos = regexp(timeOffsetRange{i}, ':');
+
+        % Analyse time offset index
+        if strcmp(timeOffsetRange{i}, ':')          % ':'
+            ind(1) = 1;
+            ind(2) = length(time);
+
+        elseif strncmp(timeOffsetRange{i}, ':', 1)  % ':yyyy'
+            ind(1) = 1;
+            a = timeOffsetRange{i}(2:end);
+            ind(2) = str2double(a);
+
+        elseif colPos==length(timeOffsetRange{i})
+            a = timeOffsetRange{i}(1:colPos-1);     % 'xxxx:'
+
+            ind(1) = str2double(a);
+            ind(2) = length(time);
+
+        else                                        % 'xxxx:yyyy'
+            ind{1} = timeOffsetRange{i}(1:colPos-1);
+            ind{2} = timeOffsetRange{i}(colPos+1:end);
+            ind = cellfun(@str2double, ind);
+        end
+
+        % Apply offset to time array
+        time(ind(1):ind(2)) = time(ind(1):ind(2)) + timeOffsetValue(i) ./24./60./60;
+        clear ind
+
+        commentstr{i} = [modules{i} ': (' timeOffsetRange{i} ') ' num2str(timeOffsetValue(i)) ' s'];
     end
-    
-    % Apply offset to time array
-    time(ind(1):ind(2)) = time(ind(1):ind(2)) + timeOffsetValue(i) ./24./60./60;
-    clear ind
-    
-    commentstr{i} = [modules{i} ': (' timeOffsetRange{i} ') ' num2str(timeOffsetValue(i)) ' s'];
+else
+    commentstr = {};
+    timeOffsetRange = {};
+    timeOffsetValue = {};
 end
