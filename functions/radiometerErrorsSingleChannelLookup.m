@@ -2,6 +2,9 @@
 % Numbers represent indices in raw measurement data and are not yet
 % converted to times
 %
+% Indices can be found by using findRadiometerErrorindex for given time
+% intervals.
+%
 % Note individual indices or intervals in the form [ii jj]
 
 function errors = radiometerErrorsSingleChannelLookup
