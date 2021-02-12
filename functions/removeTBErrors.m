@@ -10,7 +10,7 @@ vars = whos('-file', datafile);
 
 if any(strcmp(extractfield(vars, 'name'), 'errorFlagSingleChannel'))
     
-    load(datafile, 'dateSingleChannel', 'errorFlagSingleChannel', 'frequencySingleChannel', 'instrSingleChannel')
+    load(datafile, 'dateSingleChannel', 'errorFlagSingleChannel', 'frequencySingleChannel')
     
     singleChannelError = true;
 end

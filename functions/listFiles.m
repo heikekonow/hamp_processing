@@ -111,7 +111,8 @@ if nargin>1
     end
     
     if any(strcmp(varargin, 'mat'))
-        Files = [Files{:}];
+%         Files = [Files{:}];
+        Files = cell2mat(Files);
     end
 end
 

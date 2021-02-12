@@ -70,6 +70,11 @@ for i=1:length(date)
 
     % Copy errors to variables
     errorsDay = errors{indDay,2};
+    
+    % If variable is not cell, convert to cell
+    if ~iscell(errorsDay)
+        errorsDay = {errorsDay};
+    end
 
     % Read time from unified data
     timeUni = ncread(filepathnc,'time');
@@ -80,7 +85,7 @@ for i=1:length(date)
     timeErrorFlag = zeros(size(timeUni));
 
     % If errors array is not empty
-    if sum(cellfun(@isempty,errorsDay))==0
+    if sum(cellfun(@isempty,errorsDay))==0 && ~isempty(timeRaw)
 
         % Loop all errors for current date
         for k=1:length(errorsDay)
