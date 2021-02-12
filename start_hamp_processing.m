@@ -15,15 +15,15 @@ filenameprefix = '';
 
 %% Specify time frame for data conversion
 % Start date
-t1 = '20200119';  
+t1 = '20200118';  
 % End date
-t2 = '20200218';
+t2 = '20200219';
 % ! Add flight information to file flight_dates.m if they aren't already in
 % there
 
 %% Processing steps
 correctAttitude = false;
-addRadarMask = false;
+addRadarMask = true;
 unifyGrid = true;
 quicklooks = true;
 removeClutter = true;
