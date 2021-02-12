@@ -53,7 +53,7 @@ figures = false;
 % Set if error time steps should be calculated from indices
 calc = false;
 % Set if overview figure should be produced
-overview = true;
+overview = false;
 % Set if you want to check the results of error removal
 check = false;
 % Set campaign to analyse
