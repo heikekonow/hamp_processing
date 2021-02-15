@@ -1,5 +1,6 @@
 function unifyGrid_radiometer(pathtofolder, flightdate, uniTime, radiometerVars, ...
-                              altitudeThreshold, rollThreshold, missingvalue, fillvalue)
+                              altitudeThreshold, rollThreshold, missingvalue, fillvalue, ...
+                              correctRadiometerTime)
 
 interpolate = 1;
 
@@ -19,6 +20,7 @@ extra_info = cell(1,4);
 % radiometerVars = {'183','11990','KV'};
 
 interpolate_flag = cell(1,3);
+corrComment = cell(1, length(radiometerVars));
 
 for i=1:length(radiometerVars)
         
@@ -85,6 +87,14 @@ for i=1:length(radiometerVars)
         
         % Round time to seconds to avoid numerical deviations
         radiometerTime = dateround(radiometerTime', 'second');
+        
+        % If time offsets for radiometer were found, apply offsets to time
+        % arrays
+        if correctRadiometerTime
+            
+            [radiometerTime, ~, ~, corrComment{i}] = radiometerTimeOffset(flightdate, freq(1), radiometerTime);
+            
+        end
         
         % Remove times in the future and past
         ind_off = find(radiometerTime > datenum(flightdate,'yyyymmdd')+2 | ...
@@ -249,7 +259,39 @@ for i=1:length(radiometerVars)
     clear indTimeUni indTimeRadiometer uniDataRadiometer data freq radiometerTime
 end
 
-% Combine measurements from all modules into one variable
+%% Create comment string with time offset information
+% Create cell with delimiters for comments
+
+if correctRadiometerTime
+    
+    % Reshape cells to include multiple comments per radiometer module
+    corrComment = [corrComment{:}];
+    
+    c = cell(length(corrComment), 1);
+    c(1:length(corrComment)-1) = {', '};
+    if ~isempty(corrComment)
+        c(length(corrComment)) = {' '};
+    else
+        corrComment{1} = 'none';
+    end
+    
+    % Delete empty comment string entries (where no correction was applied)
+    c(cellfun(@isempty, corrComment)) = [];
+    corrComment(cellfun(@isempty, corrComment)) = [];
+    
+    if length(corrComment)==1
+%         corrComment = corrComment{1}{1};
+        corrComment = cellflat(corrComment);
+        corrCommentString = ['time corrections: ', corrComment{1}];
+    else
+%         corrComment = join([[corrComment{:}]' c]);
+        corrComment = join([corrComment' c]);
+        corrCommentString = cell2mat(join(['time corrections: ', corrComment']));
+    end
+end
+
+
+%% Combine measurements from all modules into one variable
 uniRadiometer = [uniRadiometerKV;...
                  uniRadiometer11990;...
                  uniRadiometer183];
@@ -287,7 +329,7 @@ extra_info(1,:) = [];
 clear uniData unitsTemp 
 
 % Save data to file
-save(outfile,'uni*','flightdate','extra_info','interpolate_flag')
+save(outfile,'uni*','flightdate','extra_info','interpolate_flag', 'corrCommentString')
 
 end
 

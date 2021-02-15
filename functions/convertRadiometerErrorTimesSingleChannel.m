@@ -141,4 +141,5 @@ end
 checkandcreate(basefolder, 'aux')
 
 % Save flags to file
-save([basefolder 'aux/errorFlagRadiometer.mat'],'errorFlagSingleChannel','frequencySingleChannel','dateSingleChannel','instrSingleChannel','-append')
+% save([basefolder 'aux/errorFlagRadiometer.mat'],'errorFlagSingleChannel','frequencySingleChannel','dateSingleChannel','instrSingleChannel','-append')
+save([basefolder 'aux/errorFlagRadiometer.mat'],'errorFlagSingleChannel','frequencySingleChannel','dateSingleChannel','-append')

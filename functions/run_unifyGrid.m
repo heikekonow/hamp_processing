@@ -1,5 +1,6 @@
 function run_unifyGrid(version, subversion, flightdates_use, comment, contact, altitudeThreshold, ...
-                        rollThreshold, radarmask,  radarClutter, missingvalue, fillvalue, filenameprefix)
+                        rollThreshold, radarmask,  radarClutter, correctRadiometerTime, ...
+                        missingvalue, fillvalue, filenameprefix)
 
 tic 
 %% Switches 
@@ -71,7 +72,7 @@ if unify
 
         % Radiometer
         unifyGrid_radiometer(pathtofolder,flightdates_use{i},uniTime,radiometerVars,...
-            altitudeThreshold, rollThreshold, missingvalue, fillvalue)
+            altitudeThreshold, rollThreshold, missingvalue, fillvalue, correctRadiometerTime)
         
         % Radar
         unifyGrid_radar(pathtofolder,flightdates_use{i},uniHeight,uniTime,radarVars)
@@ -94,7 +95,7 @@ commentAttr = {{'comment', comment}};
 
 %% Export to netcdf
 
-instr = {'radar','bahamas','radiometer','dropsondes'};
+instr = {'radiometer','radar','bahamas','dropsondes'};
 % instr = {'bahamas','radar','radiometer'};
 % instr = {'radar'};
 % instr = {'bahamas'};
@@ -218,6 +219,11 @@ if savedata
                 if radarClutter && strcmp(instr{j}, 'radar')
                     removeClutter(outfile, missingvalue, fillvalue)
                 end 
+                
+                %% Add comment about radiometer time correction
+                if correctRadiometerTime && strcmp(instr{j}, 'radiometer')
+                    addRadiometerTimeComment(outfile, infile)
+                end
                 
             else
                 disp(['No ' instr{j} ' data found'])
@@ -428,4 +434,10 @@ function removeSideLobes(outfile, rollThreshold, fillvalue, radarmask)
         
         ncwriteatt(outfile, 'data_flag', 'long_name', longNameAtt)
     end
+end
+
+function addRadiometerTimeComment(outfile, infile)
+    string = load(infile, 'corrCommentString');
+    
+    ncwriteatt(outfile, 'tb', 'comment', string.corrCommentString)
 end
