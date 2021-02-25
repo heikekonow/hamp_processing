@@ -307,10 +307,17 @@ uniRadiometer = removeTurnAscentDescentData(uniRadiometer, flightdate, pathtofol
 uniRadiometer_freq = round(100.*double(uniRadiometer_freq))./100;
 uniRadiometer_freq(uniRadiometer_freq==197.31) = 195.81;
 uniRadiometer_freq = single(uniRadiometer_freq);
-                  
-interpolate_flag = vertcat(interpolate_flag{:});
+
+% Order interpolate_flag the same way as uniRadiometer and uniRadiometer_freq
+interpolate_flagKV = interpolate_flag{find(cellfun(@(x) isequal(x, 'KV'), radiometerVars))};
+interpolate_flag11990 = interpolate_flag{find(cellfun(@(x) isequal(x, '11990'), radiometerVars))};
+interpolate_flag183 = interpolate_flag{find(cellfun(@(x) isequal(x, '183'), radiometerVars))};
+interpolate_flag = [interpolate_flagKV;...
+                    interpolate_flag11990;...
+                    interpolate_flag183];
 
 clear uniRadiometer11990* uniRadiometer183* uniRadiometerKV*
+clear interpolate_flagKV* interpolate_flag11990* interpolate_flag183*
 
 extra_info(end+1,:) = {'TB','K','Brightness temperature','uniRadiometer'};
 extra_info(end+1,:) = {'freq','GHz','channel center frequency','uniRadiometer_freq'};
