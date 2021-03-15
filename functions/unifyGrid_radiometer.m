@@ -309,7 +309,7 @@ uniRadiometer_freq(uniRadiometer_freq==197.31) = 195.81;
 uniRadiometer_freq = single(uniRadiometer_freq);
 
 % Order interpolate_flag the same way as uniRadiometer and uniRadiometer_freq
-interpolate_flagKV = interpolate_flag{find(cellfun(@(x) isequal(x, 'KV'), radiometerVars))};
+interpolate_flagKV = interpolate_flag{cellfun(@(x) isequal(x, 'KV'), radiometerVars)};
 interpolate_flag11990 = interpolate_flag{find(cellfun(@(x) isequal(x, '11990'), radiometerVars))};
 interpolate_flag183 = interpolate_flag{find(cellfun(@(x) isequal(x, '183'), radiometerVars))};
 interpolate_flag = [interpolate_flagKV;...
