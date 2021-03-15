@@ -331,8 +331,21 @@ function removeClutter(outfile, missingvalue, fillvalue)
         
         % Read variable data
         var = ncread(outfile, varnames{indMat(i)});
+        
+        % Preserve fill values
+        mask = false(size(var));
+        if isnan(fillvalue)
+            mask(isnan(var)) = true;
+        else
+            mask(var==fillvalue) = true;
+        end
+        
         % Remove clutter from data
         var = removeRadarClutter(var, missingvalue, fillvalue);
+        
+        % Reintroduce fill value pixels
+        var(mask) = fillvalue;
+        
         % Write to nc file again
         ncwrite(outfile, varnames{indMat(i)}, var)
     end
