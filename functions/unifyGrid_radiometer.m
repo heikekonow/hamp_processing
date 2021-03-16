@@ -25,7 +25,7 @@ corrComment = cell(1, length(radiometerVars));
 for i=1:length(radiometerVars)
         
     % Display variable name
-    disp(radiometerVars{i})
+%     disp(radiometerVars{i})
 
     % List files from specified date
     filename = listFiles([pathtofolder 'radiometer/' radiometerVars{i} '/*' flightdate '*']);

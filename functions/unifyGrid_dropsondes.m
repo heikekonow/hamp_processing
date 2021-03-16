@@ -75,7 +75,7 @@ for j=1:length(filename)
     filepath = [pathtofolder 'dropsonde/' filename{j}];
     
     % Output
-    disp(num2str(j))
+%     disp(num2str(j))
     
     % Read time and height
     sondeTime = ncread(filepath,'time');
@@ -134,7 +134,7 @@ if ~isempty(filename)
     
     % Loop dropsonde variables
     for i=1:length(sondeVars)
-        disp(sondeVars{i})
+%         disp(sondeVars{i})
         
          % Preallocate arrays
         uniDataDropsonde = uniData;

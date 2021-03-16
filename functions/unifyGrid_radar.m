@@ -25,7 +25,7 @@ if ~isempty(filename)
     for i=1:length(radarVars)
         
         % Display variable info
-        disp(radarVars{i})
+%         disp(radarVars{i})
         
         for j=1:length(indFile)
             

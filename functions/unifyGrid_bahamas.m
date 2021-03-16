@@ -105,7 +105,7 @@ if ~isempty(bahamasVars)
     % Loop variables
     for i=1:length(bahamasVars)
         % Display variable name
-        disp(bahamasVars{i})
+%         disp(bahamasVars{i})
 
         % Read bahamas data
         data = ncread(filepath,bahamasVars{i});
