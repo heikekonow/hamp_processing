@@ -32,7 +32,7 @@ correctRadiometerTime = true;
 
 %% Set version information
 version = 0;
-subversion = 9;
+subversion = 10;
 
 %% Missing value
 % Set value for missing value (pixels with no measured signal). This should
