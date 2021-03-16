@@ -23,12 +23,12 @@ t2 = '20200219';
 
 %% Processing steps
 correctAttitude = false;
-addRadarMask = false;
-unifyGrid = false;
-quicklooks = false;
-removeClutter = false;
-removeRadiometerErrors = false;  % Only possible if errors have been identified using run_assessData.m
-correctRadiometerTime = false;
+addRadarMask = true;
+unifyGrid = true;
+quicklooks = true;
+removeClutter = true;
+removeRadiometerErrors = true;  % Only possible if errors have been identified using run_assessData.m
+correctRadiometerTime = true;
 eurec4atime = true;
 
 %% Set version information
