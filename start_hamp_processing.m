@@ -29,6 +29,7 @@ quicklooks = true;
 removeClutter = true;
 removeRadiometerErrors = true;  % Only possible if errors have been identified using run_assessData.m
 correctRadiometerTime = true;
+eurec4atime = true;
 
 %% Set version information
 version = 0;
@@ -82,6 +83,10 @@ end
 
 if removeRadiometerErrors
     run_removeRadiometerErrors(version, subversion, flightdates_use)
+end
+
+if eurec4atime
+    time2EUREC4Atime(version, subversion, flightdates_use)
 end
 
 if quicklooks
