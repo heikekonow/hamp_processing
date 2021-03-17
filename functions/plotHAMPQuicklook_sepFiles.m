@@ -44,7 +44,13 @@ if nargin>2
 end
 
 t = ncread(bahamasfile,'time');
-t = double(unixtime2sdn(t));
+
+if t(1)<365*24*60*60
+    t = double(eurec4atime2sdn(t));
+else
+    t = double(unixtime2sdn(t));
+end
+
 alt = ncread(bahamasfile,'altitude');
 h = ncread(bahamasfile,'height');
 BT = ncread(radiometerfile,'tb');
