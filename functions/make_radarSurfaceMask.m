@@ -33,8 +33,13 @@ for i=1:length(flightdates_mask_input)
     
     % Look for version numbers below v1.0 to ensure that side lobes haven't
     % been removed from the data yet
-    versionNum = cellfun(@(x) getVersionFromFilename(x, 'num'), radarfiles);
-    ind_version = find(versionNum < 1, 1, 'last');
+%     versionNum = cellfun(@(x) getVersionFromFilename(x), radarfiles, 'UniformOutput', false);
+    [version, subversion] = cellfun(@(x) getVersionSubversionFromFilename(x), radarfiles, 'UniformOutput', false);
+    
+    version = cellfun(@str2num, version);
+    subversion = cellfun(@str2num, subversion);
+%     ind_version = find(versionNum < 1, 1, 'last');
+    ind_version = (version<1 & subversion==max(subversion));
     
     % Output
     disp(flightdates_mask_input{i})
