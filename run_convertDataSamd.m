@@ -462,7 +462,7 @@ function formatOUT = replace_ncFormats(formatIN)
 end
 
 function processingDate = getProcessingDate %Date 
-    processingDate = datetime(now, 'ConvertFrom', 'datenum');
+    processingDate = datestr(datetime(now, 'ConvertFrom', 'datenum'));
 end
 
 function timeRounded = checkAndRoundTime(time) 
