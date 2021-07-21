@@ -33,7 +33,7 @@ eurec4atime = true;
 
 %% Set version information
 version = 0;
-subversion = 10;
+subversion = 11;
 
 %% Missing value
 % Set value for missing value (pixels with no measured signal). This should

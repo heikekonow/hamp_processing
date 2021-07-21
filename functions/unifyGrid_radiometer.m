@@ -88,14 +88,6 @@ for i=1:length(radiometerVars)
         % Round time to seconds to avoid numerical deviations
         radiometerTime = dateround(radiometerTime', 'second');
         
-        % If time offsets for radiometer were found, apply offsets to time
-        % arrays
-        if correctRadiometerTime
-            
-            [radiometerTime, ~, ~, corrComment{i}] = radiometerTimeOffset(flightdate, freq(1), radiometerTime);
-            
-        end
-        
         % Remove times in the future and past
         ind_off = find(radiometerTime > datenum(flightdate,'yyyymmdd')+2 | ...
                         radiometerTime < datenum(flightdate,'yyyymmdd')-2);
@@ -129,7 +121,7 @@ for i=1:length(radiometerVars)
         if radiometerTime(1)<uniTime(1) && radiometerTime(end)>uniTime(end)
             % Find last time step before take off
             indStart = find(radiometerTime<uniTime(1),1,'last');
-            % Find first tim step after landing
+            % Find first time step after landing
             indEnd = find(radiometerTime>uniTime(end),1,'first');
             % Restrict radiometer time array to between take off and landing
             radiometerTime = radiometerTime(indStart+1:indEnd-1);
@@ -183,7 +175,59 @@ for i=1:length(radiometerVars)
         % Copy data from corresponding times to new unified data array
         uniDataRadiometer(:,indTimeUni(~isnan(indTimeUni))) = ...
             data(:,indTimeRadiometer(~isnan(indTimeRadiometer)));
+        
+        
+        % If time offsets for radiometer were found, apply offsets to time
+        % arrays
+        if correctRadiometerTime
+            
+            % Apply time offset to radiometer uniform time (= shift time
+            % array)
+            [uniTime_timecorr, ~, ~, corrComment{i}] = radiometerTimeOffset(flightdate, freq(1), uniTime);
+            
+            % Copy data variable
+            uniDataRadiometer_timecorr = uniDataRadiometer;
+            
+            % Remove time steps before take off. 
+            % If the time has been shifted negatively (forward), there are
+            % now data points before take off. Also the last measurement
+            % has been shifted forward. But this is ignored since
+            % measurements during ascent and descent will be removed in
+            % later processing steps anyway.
+            if uniTime_timecorr(1)<uniTime(1)
+                % Find last time step before take off
+                indStart = find(uniTime_timecorr<uniTime(1),1,'last');
+                % Remove radiometer time steps before take off
+                uniTime_timecorr = uniTime_timecorr(indStart+1:end);
+                % Remove data entries before take off
+                uniDataRadiometer_timecorr = uniDataRadiometer_timecorr(:,indStart+1:end);
+                
+            end
+            
+            % Remove time steps after landing. This part has not been
+            % tested thoroughly!
+            if uniTime_timecorr(end)>uniTime(end)
+                % Find first time step after landing
+                indEnd = find(uniTime_timecorr>uniTime(end),1,'first');
+                % Remove radiometer time steps after landing
+                uniTime_timecorr = uniTime_timecorr(1:indEnd-1);
+                % Remove data entries after landing
+                uniDataRadiometer_timecorr = uniDataRadiometer_timecorr(:,1:indEnd-1);
+            end
+            
+            % Get indexes corresponding to unified time array 
+            [indTimeUni,indTimeRadiometer] = get_indTimeRadiometer(uniTime,uniTime_timecorr);
 
+            % Preallocate new array
+            uniDataRadiometer_timecorruni = ones(size(data,1),length(uniTime)) .* fillvalue;
+
+            % Copy data from corresponding times to new unified data array
+            uniDataRadiometer_timecorruni(:,indTimeUni(~isnan(indTimeUni))) = ...
+                    uniDataRadiometer_timecorr(:,indTimeRadiometer(~isnan(indTimeRadiometer)));
+            
+            % Save data to previous uniData variable
+            uniDataRadiometer = uniDataRadiometer_timecorruni;
+        end
         
         % Interpolated data
         if interpolate && sum(sum(isnan(uniDataRadiometer)))>0
@@ -333,7 +377,7 @@ extra_info(end+1,:) = {'flightdate','','Date of flight','flightdate'};
 extra_info(1,:) = [];
 
 % Clear universal arrays
-clear uniData unitsTemp 
+clear uniData unitsTemp uniDataRadiometer* uniTime_timecorr
 
 % Save data to file
 save(outfile,'uni*','flightdate','extra_info','interpolate_flag', 'corrCommentString')
